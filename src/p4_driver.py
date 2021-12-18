@@ -16,12 +16,7 @@ class P4Driver(object):
 		self.interfaces = net_if_addrs()
 
 		# create a logger for the object
-		self.logger = logging.getLogger(__name__)
-		self.logger.setLevel(logging.INFO)
-		# create file handler which logs messages
-		self.fh = logging.FileHandler(self.conf['log_path'] + "p4_driver.log")
-		self.fh.setLevel(logging.INFO)
-		self.logger.addHandler(self.fh)
+		self.logger = get_logger(__name__, logging.INFO)
 	
 	def compile(self):
 		print("=============================================")

@@ -7,7 +7,6 @@ em_conf = {
 		"sniff_iface" : "veth3",
 		"spark_addr" : "localhost",
 		"spark_port" : 3002,
-		"log_path": "log/",
 	}
 
 p4_conf = {
@@ -16,11 +15,11 @@ p4_conf = {
 		"dst_addr":"10.1.100.2",
 		"dst_port":2222,
 		"p4_path": os.path.join(os.getcwd(), "p4"),
-		"log_path": "log/",
 	}
 
 conf = {
 	"sd_conf":sd_conf,
 	"em_conf":em_conf,
 	"p4_conf":p4_conf,
+	"log_path": "log/",
 }

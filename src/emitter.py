@@ -8,6 +8,7 @@ from struct import unpack
 import pickle
 import re
 from src.spark_driver import SparkDriver
+from src.utils import *
 
 class Emitter(object):
 
@@ -20,12 +21,7 @@ class Emitter(object):
 		self._stop_event = threading.Event()
 
 		# create a logger for the object
-		self.logger = logging.getLogger(__name__)
-		self.logger.setLevel(logging.INFO)
-		# create file handler which logs messages
-		self.fh = logging.FileHandler(self.conf['log_path'] + "emitter.log")
-		self.fh.setLevel(logging.INFO)
-		self.logger.addHandler(self.fh)
+		self.logger = get_logger(__name__, logging.INFO)
 		
 		# start spark threads
 		print("Waiting for socket")

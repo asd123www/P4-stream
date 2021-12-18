@@ -29,4 +29,4 @@ class SparkDriver(object):
 		self.ssc.awaitTermination()
 
 	def stop(self):
-		self.ssc.stop(stopGraceFully=True)
+		self.ssc.stop(stopSparkContext=True, stopGraceFully=True)
