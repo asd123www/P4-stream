@@ -120,7 +120,6 @@ control CS_UPDATE(
 
 control CM_UPDATE(
   in bit<32> key,
-  in bit<32> val,
   out bit<32> est)(
   bit<32> polynomial)
 {
@@ -138,7 +137,7 @@ control CM_UPDATE(
 
     RegisterAction<bit<32>, bit<16>, bit<32>>(cs_table) cs_action = {
         void apply(inout bit<32> register_data, out bit<32> result) {
-            register_data = register_data + val;
+            register_data = register_data + 1;
             result = register_data;
         }
     };

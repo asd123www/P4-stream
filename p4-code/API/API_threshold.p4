@@ -8,7 +8,7 @@ control GET_THRESHOLD(
     }
     table tbl_get_threshold {
         key = {
-            hdr.my_header.qid: exact;
+            hdr.ethernet.ether_type : exact;
         }
         actions = {
             tbl_get_threshold_act;

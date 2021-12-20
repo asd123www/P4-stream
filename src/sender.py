@@ -1,12 +1,12 @@
 from scapy.all import *
-
+from src.utils import *
 SEND_ITER = 10
 
 class Sender(object):
 	def __init__(self, sd_conf, queries):
 		self.conf = sd_conf
 		self.queries = queries
-		
+		self.logger = get_logger(__name__, logging.INFO)
 
 	def start(self):
 		print("==============================================")
@@ -24,6 +24,7 @@ class Sender(object):
 					# get packet
 					p = query.sender()
 					# send packet
+					self.logger.info(p['UDP'].load)
 					sendp(p, iface=self.conf["send_iface"], verbose=0)
 					query._sd_iter += 1
 					has_send = True

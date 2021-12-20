@@ -129,7 +129,7 @@ header gre_h {
 
 /* My Header Definition*/
 typedef bit<16> qid_t;
-const qid_t QID_WORD_COUNT = 16w0x0001;
+const qid_t QID_WORD_COUNT = 16w0x0100;
 header myheader_h {
     qid_t qid;
     bit<16> kvs_length; // 1
@@ -138,45 +138,31 @@ header myheader_h {
 typedef bit<16> key_len_t; // mutiple of 4
 typedef bit<16> val_len_t; // mutiple of 4
 
-header key_word_h {
-    bit<32> data;
-}
+typedef bit<32> key_word_t;
+typedef bit<32> val_word_t;
 
-header val_word_h {
-    bit<32> data;
-}
-
-
-header mykvs_header_h {
+header mykvs_header_t {
     key_len_t key_len;
     val_len_t val_len;
 }
-
-struct key_word_t {
-    key_word_h key_word_1;
-    key_word_h key_word_2;
-    key_word_h key_word_3;
-    key_word_h key_word_4;
-    key_word_h key_word_5;
-    key_word_h key_word_6;
-    key_word_h key_word_7;
-    key_word_h key_word_8;
-}
-
-struct val_word_t {
-    val_word_h val_word_1;
-    val_word_h val_word_2;
-    val_word_h val_word_3;
-    val_word_h val_word_4;
-    val_word_h val_word_5;
-    val_word_h val_word_6;
-    val_word_h val_word_7;
-    val_word_h val_word_8;
-}
-struct mykvs_t {
-    mykvs_header_h  kvs_header;
-    key_word_t key_word;
-    val_word_t val_word;
+header mykvs_t {
+    mykvs_header_t kvs_header;
+    key_word_t key_word_1;
+    key_word_t key_word_2;
+    key_word_t key_word_3;
+    key_word_t key_word_4;
+    key_word_t key_word_5;
+    key_word_t key_word_6;
+    key_word_t key_word_7;
+    key_word_t key_word_8;
+    val_word_t val_word_1;
+    val_word_t val_word_2;
+    val_word_t val_word_3;
+    val_word_t val_word_4;
+    val_word_t val_word_5;
+    val_word_t val_word_6;
+    val_word_t val_word_7;
+    val_word_t val_word_8;
 }
 
 /* End of My Header Definition*/
@@ -189,7 +175,7 @@ struct header_t {
     ipv6_h ipv6;
     tcp_h tcp;
     udp_h udp;
-    myheader_h my_header;
+    my_header_h my_header;
     mykvs_t kvs;
 }
 

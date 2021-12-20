@@ -23,15 +23,19 @@ class Runtime(object):
 		self.p4_driver.compile()
 		self.p4_model_thread = Thread(name="p4_model", target=self.p4_driver.start_model)
 		self.p4_model_thread.start()
-		time.sleep(1)
+		time.sleep(10)
 		self.p4_driver_thread = Thread(name="p4_driver", target=self.p4_driver.start_driver)
 		self.p4_driver_thread.start()
-		time.sleep(1)
-		self.p4_driver.send_command()
-		# start sender
+		time.sleep(10)
+		self.p4_driver_command_thread = Thread(name="p4_command", target=self.p4_driver.send_command)
+		self.p4_driver_command_thread.start()
+		time.sleep(10)
+		# print(self.interfaces["veth1"][0].address)
+		
+		# self.create_interfaces()
 		self.sender = Sender(self.conf["sd_conf"], self.queries)
 		self.sender_thread = Thread(name="sender", target=self.sender.start)
-		# start emitter
+
 		self.emitter = Emitter(self.conf["em_conf"], self.queries)
 		self.emitter_thread = Thread(name="emitter", target=self.emitter.start)
 
