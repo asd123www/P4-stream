@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 import os
-=======
->>>>>>> dzm
 from tempfile import TemporaryFile
 from subprocess import check_output, CalledProcessError
 import time

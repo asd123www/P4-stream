@@ -77,8 +77,8 @@ class WordCountRaw(object):
 			return kv[0], int(kv[1])
 
 		kvs1 = kvs.map(kv_split)
-		# kvs2 = kvs1.reduceByKey(lambda a, b: a + b)
-		kvs2 = kvs1.reduceByKey(lambda a, b: a if a > b else b)
+		kvs2 = kvs1.reduceByKey(lambda a, b: a + b)
+		# kvs2 = kvs1.reduceByKey(lambda a, b: a if a > b else b)
 		kvs3 = kvs2.filter(lambda x: x[1] >= self.thresh)
 		return kvs3
 

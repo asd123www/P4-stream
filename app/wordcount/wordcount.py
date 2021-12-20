@@ -97,7 +97,7 @@ if __name__ == '__main__':
 	}
 	
 	conf["p4_conf"].update({
-		"app":"wordCount"
+		"app":"word_count_sketch"
 		})
 	query = WordCount(q_conf)
 	Runtime(conf, [query])
