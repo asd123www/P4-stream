@@ -218,6 +218,9 @@ control SwitchIngress(
                         hdr.kv.value = val;
                     }
                 }
+                else {
+                    drop();
+                }
             }
         }
     }
