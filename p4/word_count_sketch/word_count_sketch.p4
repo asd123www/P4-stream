@@ -58,7 +58,7 @@ struct metadata_t {
 
 #include "parser.p4"
 
-#include "API_common.p4"
+//#include "API_common.p4"
 //#include "API_O1_hash.p4"
 //#include "API_O2_hash.p4"
 //#include "API_O3_tcam.p4"
@@ -73,7 +73,7 @@ control CM_UPDATE_KEY(
 {
 
     CRCPolynomial<bit<32>>(polynomial, true,  false, false, 32w0xFFFFFFFF,  32w0xFFFFFFFF ) poly1;
-    Hash<bit<16>>(HashAlgorithm_t.CUSTOM, poly1) hash1;
+    Hash<bit<16>>(HashAlgorithm_t.CRC32, poly1) hash1;
 
     Register<bit<32>, bit<16>>(32w65536) cs_table;
 
