@@ -34,7 +34,7 @@ parser TofinoEgressParser(
 control BypassEgress(inout ingress_intrinsic_metadata_for_tm_t ig_tm_md) {
 
     action set_bypass_egress() {
-        ig_tm_md.bypass_egress = 1w1;
+        ig_tm_md.bypass_egress = true;
     }
 
     table bypass_egress {
