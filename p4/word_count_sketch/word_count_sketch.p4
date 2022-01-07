@@ -54,6 +54,8 @@ struct metadata_t {
     bit<1> c_5;
 
     bit<1> above_threshold;
+
+    bit<1> flag;
 }
 
 #include "parser.p4"
@@ -69,23 +71,36 @@ struct metadata_t {
 
 control CM_UPDATE_KEY(
   inout header_t hdr,
+  inout bit<1> flag, 
   out bit<32> est)(bit<32> polynomial)
 {
 
     CRCPolynomial<bit<32>>(polynomial, true,  false, false, 32w0xFFFFFFFF,  32w0xFFFFFFFF ) poly1;
-    Hash<bit<16>>(HashAlgorithm_t.CRC32, poly1) hash1;
-
-    Register<bit<32>, bit<16>>(32w65536) cs_table;
-
-    RegisterAction<bit<32>, bit<16>, bit<32>>(cs_table) cs_action = {
+    CRCPolynomial<bit<32>>(polynomial, true,  false, false, 32w0xFFFFFFFF,  32w0xFFFFFFFF ) poly2;
+    Hash<bit<10>>(HashAlgorithm_t.CRC32, poly1) hash1;
+    Hash<bit<10>>(HashAlgorithm_t.CRC32, poly2) hash2;
+    Register<bit<32>, bit<10>>(32w1024) cs_table1;
+    Register<bit<32>, bit<10>>(32w1024) cs_table2;
+    RegisterAction<bit<32>, bit<10>, bit<32>>(cs_table1) cs_action1 = {
         void apply(inout bit<32> register_data, out bit<32> result) {
             register_data = register_data + hdr.kvs.val_word.val_word_1.data;
             result = register_data;
         }
     };
-
+    RegisterAction<bit<32>, bit<10>, bit<32>>(cs_table2) cs_action2 = {
+        void apply(inout bit<32> register_data, out bit<32> result) {
+            register_data = register_data + hdr.kvs.val_word.val_word_1.data;
+            result = register_data;
+        }
+    };
     apply {
-        est = cs_action.execute(hash1.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data}));
+        @atomic{
+            if(flag == 1){
+                est = cs_action1.execute(hash1.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data}));
+            }else{
+                est = cs_action2.execute(hash2.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data}));
+            }
+        }
     }
 }
 
@@ -103,24 +118,40 @@ control SwitchIngress(
         
     GET_THRESHOLD() get_threshold;
 
+    action flag1(){
+        ig_md.flag = 1;
+    }
+    action flag0(){
+        ig_md.flag = 0;
+    }
+    table stflag{
+        key = {
+            ig_md.flag : exact;
+        }
+        actions = {
+            flag1;
+            flag0;
+        }
+        size = 2;
+        default_action = flag0();
+    }
+
     CM_UPDATE_KEY(32w0x30243f0b) update_1;
     CM_UPDATE_KEY(32w0x0f79f523) update_2;
     CM_UPDATE_KEY(32w0x6b8cb0c5) update_3;
-    CM_UPDATE_KEY(32w0x00390fc3) update_4;
-    CM_UPDATE_KEY(32w0x298ac673) update_5;
 
     action ipv4_forward(mac_addr_t dst_addr, PortId_t port) {
         ig_tm_md.ucast_egress_port = port;
         hdr.ethernet.src_addr = hdr.ethernet.dst_addr;
         hdr.ethernet.dst_addr = dst_addr;
         hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
-        hdr.kvs.val_word.val_word_1.data = ig_md.est_5;
+        hdr.kvs.val_word.val_word_1.data = ig_md.est_3;
     }
     
     action drop() {
         ig_dprsr_md.drop_ctl = 1;
     }
-
+    
     table ipv4_lpm {
         key = {
             hdr.ipv4.dst_addr: lpm;
@@ -139,12 +170,7 @@ control SwitchIngress(
     action a3(){
         ig_md.est_3 = ig_md.est_2;
     }
-    action a4(){
-        ig_md.est_4 = ig_md.est_3;
-    }
-    action a5(){
-        ig_md.est_5 = ig_md.est_4;
-    }
+    
     
     table t2{
         key = {
@@ -169,36 +195,14 @@ control SwitchIngress(
         size = 2;
         default_action = NoAction();
     }
-    table t4{
-        key = {
-            ig_md.c_4 : exact;
-        }
-        actions = {
-            a4;
-            NoAction;
-        }
-        size = 2;
-        default_action = NoAction();
-    }
-    table t5{
-        key = {
-            ig_md.c_5 : exact;
-        }
-        actions = {
-            a5;
-            NoAction;
-        }
-        size = 2;
-        default_action = NoAction();
-    }
+   
 
     apply {
+        stflag.apply();
         get_threshold.apply(hdr, ig_md);
-        update_1.apply(hdr, ig_md.est_1);
-        update_2.apply(hdr, ig_md.est_2);
-        update_3.apply(hdr, ig_md.est_3);
-        update_4.apply(hdr, ig_md.est_4);
-        update_5.apply(hdr, ig_md.est_5);
+        update_1.apply(hdr, ig_md.flag, ig_md.est_1);
+        update_2.apply(hdr, ig_md.flag, ig_md.est_2);
+        update_3.apply(hdr, ig_md.flag, ig_md.est_3);   
         
         //hit_key.apply(hdr, ig_md, ig_tm_md);
         ig_md.est_12 = ig_md.est_2 - ig_md.est_1;
@@ -207,12 +211,7 @@ control SwitchIngress(
         ig_md.est_13 = ig_md.est_3 - ig_md.est_2;
         ig_md.c_3 = (bit<1>) (ig_md.est_13 >> 31);
         t3.apply();
-        ig_md.est_14 = ig_md.est_4 - ig_md.est_3;
-        ig_md.c_4 = (bit<1>) (ig_md.est_14 >> 31);
-        t4.apply();
-        ig_md.est_15 = ig_md.est_5 - ig_md.est_4;
-        ig_md.c_5 = (bit<1>) (ig_md.est_15 >> 31);
-        t5.apply();
+
         ipv4_lpm.apply();
     }
 }
