@@ -10,7 +10,7 @@ em_conf = {
 	}
 
 p4_conf = {
-		"hw": False,
+		"hw": True,
 		"p4_path": os.path.join(os.getcwd(), "p4"),
 	}
 

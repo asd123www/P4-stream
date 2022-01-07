@@ -20,16 +20,7 @@ class Runtime(object):
 		
 		self.p4_driver = P4Driver(self.conf["p4_conf"])
 		# start p4
-		self.p4_driver.compile()
-		self.p4_model_thread = Thread(name="p4_model", target=self.p4_driver.start_model)
-		self.p4_model_thread.start()
-		time.sleep(3)
-		self.p4_driver_thread = Thread(name="p4_driver", target=self.p4_driver.start_driver)
-		self.p4_driver_thread.start()
-		time.sleep(3)
-		self.p4_driver_command_thread = Thread(name="p4_command", target=self.p4_driver.send_command)
-		self.p4_driver_command_thread.start()
-		time.sleep(2)
+		self.p4_driver.start()
 		# print(self.interfaces["veth1"][0].address)
 		
 		# self.create_interfaces()

@@ -42,7 +42,7 @@ control SwitchIngress(
             NoAction;
         }
         size = 512;
-        default_action = NoAction();
+        default_action = NoAction;
     }
 
     apply {

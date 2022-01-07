@@ -1,3 +1,4 @@
+# 模拟器版本
 ## 布局
 
 *   应用在`app`里
@@ -18,8 +19,6 @@ export PYTHONPATH=$PWD
 sudo python3 app/wordcount/wordcount_raw.py
 ```
 
-
-
 ## 新增应用
 
 ```python
@@ -35,3 +34,17 @@ Runtime(conf, [queries])# 以这些应用运行
 
 
 
+
+
+# bf1交换机版本
+
+## 测试
+
+#### bf1
+
+*   不需要进入venv环境
+
+```shell
+export PYTHONPATH=$PWD
+python3 src/p4_driver.py simple_l3
+```
