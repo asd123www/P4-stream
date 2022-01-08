@@ -5,7 +5,7 @@ sd_conf = {
 
 em_conf = {
 		"sniff_iface" : "enp129s0f0",
-		"spark_addr" : "0.0.0.0",
+		"spark_addr" : "localhost",
 		"spark_port" : 3002,
 	}
 

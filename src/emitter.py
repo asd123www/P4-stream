@@ -62,7 +62,7 @@ class Emitter(object):
 	def process_packet(self, p):
 		
 		if not 'UDP' in p:
-			print("not an IP packet")
+			print("not an UDP packet")
 			return
 
 		data = p['UDP'].load

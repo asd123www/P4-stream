@@ -18,6 +18,6 @@ if __name__ == "__main__":
 		"app":"word_count_sketch"
 	})
 	query = WordCount(q_conf)
-	emitter = Emitter(query["em_conf"], [query])
+	emitter = Emitter(conf["em_conf"], [query])
 
 	emitter.start()
