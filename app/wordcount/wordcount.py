@@ -6,7 +6,6 @@ from scapy.all import *
 from struct import pack, unpack
 import numpy as np
 from src.runtime import Runtime
-from config.config import conf
 
 current_path = os.path.abspath(__file__)
 
@@ -17,6 +16,15 @@ probs /= np.sum(probs)
 
 WORDCOUNT_QID = 1
 WORDCOUNT_THRESH = 3
+
+q_conf = {
+	"qid":WORDCOUNT_QID,
+	"src_addr":"10.1.100.1",
+	"src_port":1111,
+	"dst_addr":"10.1.100.2",
+	"dst_port":2222,
+	"sd_iter":100
+}
 
 class WordCount(object):
 
@@ -84,20 +92,13 @@ class WordCount(object):
 
 	def output(self, kvs):
 		print(kvs)
-	
+
 if __name__ == '__main__':
 
-	q_conf = {
-		"qid":WORDCOUNT_QID,
-		"src_addr":"10.1.100.1",
-		"src_port":1111,
-		"dst_addr":"10.1.100.2",
-		"dst_port":2222,
-		"sd_iter":100
-	}
-	
+	from config.config import conf
+
 	conf["p4_conf"].update({
 		"app":"word_count_sketch"
-		})
+	})
 	query = WordCount(q_conf)
 	Runtime(conf, [query])
