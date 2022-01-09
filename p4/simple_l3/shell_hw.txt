@@ -1,0 +1,4 @@
+ucli
+pm
+port-add 9/0 40G NONE
+port-add 10/0 40G NONE

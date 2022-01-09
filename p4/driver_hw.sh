@@ -7,4 +7,4 @@ cd ~/bf-sde-8.9.1
 
 echo "starting p4 driver: "$APP
 
-./run_switchd.sh -p $APP
+./run_switchd.sh -p $APP <$CURRENT/$APP/shell_hw.txt
