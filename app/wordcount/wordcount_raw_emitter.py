@@ -5,7 +5,7 @@ from random import randint
 from scapy.all import *
 from struct import pack, unpack
 import numpy as np
-from src.runtime import Runtime
+from src.runtime_emitter import Runtime
 from config.config import conf
 
 current_path = os.path.abspath(__file__)

@@ -5,12 +5,12 @@ from random import randint
 from scapy.all import *
 from struct import pack, unpack
 import numpy as np
-from src.runtime import Runtime
+from src.runtime_sender import Runtime
 from config.config import conf
 
 current_path = os.path.abspath(__file__)
 
-words = ["pie", "a", "banana", "apple", "responsbility"]
+words = ["Ava_", "Bella___", "Carol___", "Diana___", "Eileen__"]
 
 probs = np.array([10, 5, 3, 2, 7], dtype=float)
 probs /= np.sum(probs)
