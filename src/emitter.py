@@ -89,7 +89,7 @@ if __name__ == '__main__':
 	from app.wordcount import emitter
 
 	em_conf = {
-		"sniff_iface" : "veth-1",
+		"sniff_iface" : "enp129s0f0",
 		"spark_addr" : "localhost",
 		"spark_port" : 3002,
 		"log_path": "log/",
