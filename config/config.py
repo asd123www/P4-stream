@@ -1,10 +1,10 @@
 import os
 sd_conf = {
-		"send_iface": "veth1",
+		"send_iface": "enp129s0f0",
 	}
 
 em_conf = {
-		"sniff_iface" : "veth3",
+		"sniff_iface" : "enp129s0f0",
 		"spark_addr" : "localhost",
 		"spark_port" : 3002,
 	}
