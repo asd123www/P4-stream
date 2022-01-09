@@ -1,4 +1,4 @@
-bfrt.word_count_sketch.SwitchIngress.ipv4_lpm.add_with_ipv4_forward(hdr_ipv4_dst_addr=ip("10.0.0.10"), hdr_ipv4_dst_addr_p_length=32, dst_addr=mac("3c:fd:fe:bb:ca:80"), port=10)
+bfrt.word_count_sketch.SwitchIngress.ipv4_lpm.add_with_ipv4_forward(ipv4_dst_addr=ip("10.0.11.100"), ipv4_dst_addr_p_length=32, dst_addr=mac("3c:fd:fe:bb:ca:81"), port=10)
 bfrt.word_count_sketch.SwitchIngress.ipv4_lpm.dump()
 
 
