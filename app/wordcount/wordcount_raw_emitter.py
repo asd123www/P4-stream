@@ -5,7 +5,7 @@ from random import randint
 from scapy.all import *
 from struct import pack, unpack
 import numpy as np
-from src.runtime import Runtime
+from src.runtime_emitter import Runtime
 from config.config import conf
 
 current_path = os.path.abspath(__file__)
@@ -74,6 +74,8 @@ class WordCountRaw(object):
 	def spark_build(self, kvs):
 		def kv_split(x):
 			kv = x[4:].split(' ')
+			if len(kv) < 2:
+				return '', 0
 			return kv[0], int(kv[1])
 
 		kvs1 = kvs.map(kv_split)
@@ -89,9 +91,9 @@ if __name__ == '__main__':
 
 	q_conf = {
 		"qid":WORDCOUNT_QID,
-		"src_addr":"10.0.0.9",
+		"src_addr":"10.0.11.99",
 		"src_port":1111,
-		"dst_addr":"10.0.0.10",
+		"dst_addr":"10.0.11.100",
 		"dst_port":2222,
 		"sd_iter":100
 	}

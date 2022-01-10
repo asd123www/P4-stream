@@ -48,3 +48,15 @@ Runtime(conf, [queries])# 以这些应用运行
 export PYTHONPATH=$PWD
 python3 src/p4_driver.py simple_l3
 ```
+
+## dl9
+
+```shell
+sudo python3 app/wordcount/wordcount_raw_sender.py
+```
+
+## dl10
+
+```shell
+ sudo python3 app/wordcount/wordcount_raw_emitter.py
+```

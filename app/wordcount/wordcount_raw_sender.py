@@ -5,12 +5,12 @@ from random import randint
 from scapy.all import *
 from struct import pack, unpack
 import numpy as np
-from src.runtime import Runtime
+from src.runtime_sender import Runtime
 from config.config import conf
 
 current_path = os.path.abspath(__file__)
 
-words = ["pie", "a", "banana", "apple", "responsbility"]
+words = ["Ava_", "Bella___", "Carol___", "Diana___", "Eileen__"]
 
 probs = np.array([10, 5, 3, 2, 7], dtype=float)
 probs /= np.sum(probs)
@@ -69,7 +69,7 @@ class WordCountRaw(object):
 		data += pack(str(key_len) + "s", bytes(word, encoding="ASCII"))
 		data += pack("!I", 1)
 		
-		return Ether() / IP(src=self.conf["src_addr"], dst=self.conf["dst_addr"]) / UDP(sport=self.conf["src_port"], dport=self.conf["dst_port"]) / data
+		return b'\xff\xff\xff\xff\xff\xff<\xfd\xfe\xbb\xcc\xa9\x08\x00' / IP(src=self.conf["src_addr"], dst=self.conf["dst_addr"]) / UDP(sport=self.conf["src_port"], dport=self.conf["dst_port"]) / data
 		
 	def spark_build(self, kvs):
 		def kv_split(x):
@@ -89,9 +89,9 @@ if __name__ == '__main__':
 
 	q_conf = {
 		"qid":WORDCOUNT_QID,
-		"src_addr":"10.0.0.9",
+		"src_addr":"10.0.11.99",
 		"src_port":1111,
-		"dst_addr":"10.0.0.10",
+		"dst_addr":"10.0.11.100",
 		"dst_port":2222,
 		"sd_iter":100
 	}

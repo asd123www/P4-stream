@@ -42,6 +42,6 @@ class Sender(object):
 if __name__ == "__main__":
 	sd_conf = {
 		"iter": SEND_ITER,
-		"send_iface": "veth0",
+		"send_iface": "enp129s0f1",
 
 	}
