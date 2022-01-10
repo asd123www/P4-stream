@@ -74,6 +74,8 @@ class WordCountRaw(object):
 	def spark_build(self, kvs):
 		def kv_split(x):
 			kv = x[4:].split(' ')
+			if len(kv) < 2:
+				return '', 0
 			return kv[0], int(kv[1])
 
 		kvs1 = kvs.map(kv_split)

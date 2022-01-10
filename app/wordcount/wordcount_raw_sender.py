@@ -69,7 +69,7 @@ class WordCountRaw(object):
 		data += pack(str(key_len) + "s", bytes(word, encoding="ASCII"))
 		data += pack("!I", 1)
 		
-		return Ether() / IP(src=self.conf["src_addr"], dst=self.conf["dst_addr"]) / UDP(sport=self.conf["src_port"], dport=self.conf["dst_port"]) / data
+		return b'\xff\xff\xff\xff\xff\xff<\xfd\xfe\xbb\xcc\xa9\x08\x00' / IP(src=self.conf["src_addr"], dst=self.conf["dst_addr"]) / UDP(sport=self.conf["src_port"], dport=self.conf["dst_port"]) / data
 		
 	def spark_build(self, kvs):
 		def kv_split(x):

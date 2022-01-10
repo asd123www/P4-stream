@@ -45,7 +45,7 @@ parser SwitchIngressParser(
 
     state parse_udp {
         pkt.extract(hdr.udp);
-        transition accept;
+        transition parse_my_header;
     }
     
     state parse_my_header {

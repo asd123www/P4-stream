@@ -1,6 +1,6 @@
 import os
 sd_conf = {
-		"send_iface": "enp129s0f0",
+		"send_iface": "enp129s0f1",
 	}
 
 em_conf = {
