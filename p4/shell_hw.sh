@@ -7,4 +7,5 @@ cd ~/bf-sde-8.9.1
 
 echo "starting p4 shell: "$APP
 
+./run_bfshell.sh -f $CURRENT/$APP/shell_hw.txt
 ./run_bfshell.sh -b $CURRENT/$APP/command_hw.py
