@@ -75,10 +75,10 @@ if __name__ == "__main__":
 		if debug:
 			with open(os.path.join(p4_conf["p4_path"], "simple_l3_zcq","simple_l3_zcq.p4")) as f:
 				p4_code = f.read()
-				f.close()
+
 			with open(os.path.join(p4_conf["p4_path"], "simple_l3_zcq","command_hw.py")) as f:
 				sh_code = f.read()
-				f.close()
+				sh_code = re.sub("simple_l3_zcq", p4_conf["tmp_name"], sh_code)
 
 		p4_server = P4Server(p4_conf, p4_code, sh_code)
 		p4_server.start()
