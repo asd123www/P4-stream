@@ -7,6 +7,7 @@ from threading import Thread
 from struct import unpack
 import pickle
 import re
+import traceback
 from src.emitter import Emitter
 from src.utils import *
 
@@ -64,20 +65,17 @@ if __name__ == "__main__":
 	from config.config_hw import em_conf
 
 	listener = Listener((em_conf["server_addr"], em_conf["server_port"]))
+	print("listening, waiting for monitor")
 	conn = listener.accept()
 	try:
-		# currently do not receive conf from monitor
-		# use em_conf directly
-		conf, formats = em_conf, conn.recv()
-		
-		if conf["server_addr"] != em_conf["server_addr"]:
-			print("invalid conf")
-			exit(1)
+		print("=== accepted")
+		formats = conn.recv()
 
-		em_server = Emitter_Server(conf, formats)
+		em_server = Emitter_Server(em_conf, formats)
 		em_server_thread = Thread(name="em_server", target=em_server.start)
 		em_server_thread.start()
 		conn.send("ready")
+		print("=== ready ===")
 
 		while True:
 			msg = conn.recv()
@@ -92,7 +90,7 @@ if __name__ == "__main__":
 				break
 
 	except:
-		print("invalid conf")
+		traceback.print_exc()
 		if em_server != None:
 			em_server.stop()
 		exit(1)
