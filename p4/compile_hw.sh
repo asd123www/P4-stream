@@ -12,6 +12,8 @@ common_p4=$CURRENT/common_p4
 echo "compling p4 project: "$CURRENT/$APP/$APP.p4
 
 . ~/tools/p4_build.sh  $CURRENT/$APP/$APP.p4 \
-    -- P4_NAME=$APP \
+    --with-p4c=bf-p4c \
+    P4_NAME=$APP \
     P4FLAGS="--no-dead-code-elimination" \
+    P4_VERSION=p4_16 \
     P4PPFLAGS="-I ${API} -I ${common_p4}"
