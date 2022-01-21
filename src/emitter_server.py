@@ -64,6 +64,7 @@ if __name__ == "__main__":
 	from config.config_hw import em_conf
 
 	listener = Listener((em_conf["server_addr"], em_conf["server_port"]))
+	print("listening, waiting for monitor")
 	conn = listener.accept()
 	try:
 		# currently do not receive conf from monitor
@@ -78,6 +79,7 @@ if __name__ == "__main__":
 		em_server_thread = Thread(name="em_server", target=em_server.start)
 		em_server_thread.start()
 		conn.send("ready")
+		print("=== ready ===")
 
 		while True:
 			msg = conn.recv()
