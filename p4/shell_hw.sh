@@ -3,7 +3,7 @@ cd `dirname $0`
 CURRENT=`pwd`
 APP=$1
 
-cd ~/bf-sde-8.9.1
+cd $SDE
 
 echo "starting p4 shell: "$APP
 

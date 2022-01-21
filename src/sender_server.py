@@ -28,6 +28,8 @@ class SenderServer(object):
 	def send(self, p):
 		sendp(p, iface=self.conf["send_iface"], verbose=0)
 		self.send_cnt += 1
+
+		# if there is reduce(), hash the key
 	
 	def finish(self):
 		self.end_time = datetime.now()

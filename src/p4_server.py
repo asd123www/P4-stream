@@ -37,6 +37,8 @@ class P4Server(object):
 	def start(self):
 		self.p4_driver.start()
 		
+	def exit(self):
+		self.p4_driver.exit()
 
 
 if __name__ == "__main__":
@@ -44,23 +46,34 @@ if __name__ == "__main__":
 	from config.config_hw import p4_conf
 
 	try:
-		opts = getopt(sys.argv, 's', ['suffix'])
+		opts, args = getopt(sys.argv[1:], '-s-d', ['suffix', 'debug'])
 	except:
 		print("getopt error")
 	
+	debug = False
+
 	for opt, arg in opts:
 		if opt in ('-s', '--suffix'):
 			p4_conf.update({
 				"tmp_name": p4_conf["tmp_name"] + "_" + "arg"
 			})
 
+		if opt in ('-d', '--debug'):
+			debug = True
 
 	listener = Listener((p4_conf["server_addr"], p4_conf["server_port"]))
+	print("listening, waiting for monitor")
 	conn = listener.accept()
 	try:
 		# currently do not receive conf from monitor
 		# use p4_conf directly
-		conf, p4_code, sh_code = p4_conf, conn.recv()
+		conf, p4_code, sh_code = conn.recv()
+		if debug:
+			conf = p4_conf
+			with open(os.path.join(conf["p4_path"], "simple_l3_zcq","simple_l3_zcq.p4")) as f:
+				p4_code = f.read()
+			with open(os.path.join(conf["p4_path"], "simple_l3_zcq","command_hw.py")) as f:
+				sh_code = f.read()
 		
 		if conf["server_addr"] != p4_conf["server_addr"]:
 			print("invalid conf")
@@ -73,8 +86,11 @@ if __name__ == "__main__":
 		while True:
 			msg = conn.recv()
 			if msg == "stop":
-				exit(0)
+				break
 
 	except:
 		print("invalid conf")
-		exit(1)
+	
+	finally:
+		p4_server.exit()
+		exit(0)
