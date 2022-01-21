@@ -270,7 +270,7 @@ class P4Generator():
         reduce_t = ReduceOperator(self, key, operation, num, length)
         name = reduce_t.generate()
         self.operators.append(name)
-
+        
         return
 
     def printStr(self, pathname):
@@ -289,7 +289,6 @@ class P4Generator():
         self.Map('origin', 'identity', '32w0', '+')
         self.Filter('identity', '32w0', '>=')
         self.Map('identity', 'add3', '32w3', '+')
-        self.Reduce('add3', 'sum', 3, 4096)
         self.P4String.generate()
 
         # you need to change the path!
