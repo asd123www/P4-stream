@@ -27,24 +27,24 @@ class Monitor(object):
 			spark_queries.append(spark_query)
 
 		# Generate .p4 file, format, command.py
-		self.p4_code, self.sh_code, self.em_formats = "", "", []
-		self.p4_code, self.sh_code, self.em_formats = P4Generator(p4_queries).solve()
+		p4_code, sh_code, em_formats = "", "", []
+		p4_code, sh_code, em_formats = P4Generator(p4_queries).solve()
 
 		# Generate spark file
-		self.em_formats = []
-		# self.em_formats = SparkGenerator(self.em_formats, spark_queries).solve()
+		em_formats = []
+		# em_formats = SparkGenerator(em_formats, spark_queries).solve()
 
 		# connect to switch
 		print("=== connecting to switch ===")
 		self.p4_conn = Client((self.conf["p4_conf"]["server_addr"], self.conf["p4_conf"]["server_port"]))
-		self.p4_conn.send((self.p4_code, self.sh_code))
+		self.p4_conn.send((p4_code, sh_code))
 		assert (self.p4_conn.recv() == "ready")
 		print("=== connected to switch ===")
 
 		# connect to emitter
 		print("=== connecting to emitter ===")
 		self.em_conn = Client((self.conf["em_conf"]["server_addr"], self.conf["em_conf"]["server_port"]))
-		self.em_conn.send(self.em_formats)
+		self.em_conn.send(em_formats)
 		assert (self.em_conn.recv() == "ready")
 		print("=== connected to emitter ===")
 

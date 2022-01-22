@@ -39,15 +39,15 @@ class Emitter_Server(object):
 
 		return func
 
-	def emitter_func(self, format):
+	def emitter_func(self, em_format):
 		def func(data):
 			self.em_cnt += 1
 			key_len = unpack("!H", packet[0:2])[0]
 			val_len = unpack("!H", packet[2:4])[0]
-			if format["key"] == "origin":
+			if em_format == "origin":
 				key = str(unpack(str(key_len) + "s", packet[4:4+key_len])[0], encoding="ASCII")
 			else:
-				key = format["key"]
+				key = em_format
 			
 			val = unpack("!I", packet[4+key_len:4+key_len+val_len])[0]
 			return key+' '+str(val)+'\n'
