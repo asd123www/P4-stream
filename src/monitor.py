@@ -9,7 +9,8 @@ import re
 
 from src.utils import *
 from src.p4_driver import P4Driver
-# from src.p4_generator import P4Generator
+from p4_compiler.P4Generator import P4Generator
+
 
 
 class Monitor(object):
@@ -18,26 +19,32 @@ class Monitor(object):
 		self.queries = queries
 
 		# split task
-
-		# Generate spark file
-		self.spark_code = ""
+		p4_queries = []
+		spark_queries = []
+		for query in queries:
+			p4_queriy, spark_query = query.split()
+			p4_queries.append(p4_queriy)
+			spark_queries.append(spark_query)
 
 		# Generate .p4 file, format, command.py
-		self.p4_code, self.em_format, self.sh_code = "", {}, ""
+		self.p4_code, self.sh_code, self.em_formats = "", "", []
+		self.p4_code, self.sh_code, self.em_formats = P4Generator(p4_queries).solve()
+
+		# Generate spark file
+		self.em_formats = []
+		# self.em_formats = SparkGenerator(self.em_formats, spark_queries).solve()
 
 		# connect to switch
-		"""
 		print("=== connecting to switch ===")
 		self.p4_conn = Client((self.conf["p4_conf"]["server_addr"], self.conf["p4_conf"]["server_port"]))
 		self.p4_conn.send((self.p4_code, self.sh_code))
 		assert (self.p4_conn.recv() == "ready")
 		print("=== connected to switch ===")
-		"""
 
 		# connect to emitter
 		print("=== connecting to emitter ===")
 		self.em_conn = Client((self.conf["em_conf"]["server_addr"], self.conf["em_conf"]["server_port"]))
-		self.em_conn.send(self.em_format)
+		self.em_conn.send(self.em_formats)
 		assert (self.em_conn.recv() == "ready")
 		print("=== connected to emitter ===")
 
@@ -48,6 +55,7 @@ class Monitor(object):
 		
 		while True:
 			if self.poll():
+				# finished
 				break
 
 	def poll(self):

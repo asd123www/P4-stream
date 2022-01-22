@@ -14,6 +14,6 @@ echo "compling p4 project: "$CURRENT/$APP/$APP.p4
 . ~/tools/p4_build.sh  $CURRENT/$APP/$APP.p4 \
     --with-p4c=bf-p4c \
     P4_NAME=$APP \
-    P4FLAGS="--no-dead-code-elimination" \
+    P4FLAGS="--create-graphs --no-dead-code-elimination" \
     P4_VERSION=p4_16 \
-    P4PPFLAGS="-I ${API} -I ${common_p4}"
+    P4PPFLAGS="-I ${API} -I ${common_p4}" 

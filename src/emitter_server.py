@@ -25,10 +25,10 @@ class Emitter_Server(object):
 
 		for format in formats:
 			query = Emitter_Server.Query()
-			query.qid = format.qid
-			query.qname = format.qname
-			query.spark_build = self.spark_build(format.spark_code)
-			query.emitter = self.emitter_func(format.em_format)
+			query.qid = format["qid"]
+			query.qname = format["qname"]
+			query.spark_build = self.spark_build(format["spark_code"])
+			query.emitter = self.emitter_func(format["em_format"])
 			self.queries.append(query)
 		
 		self.emitter = Emitter(self.conf, self.queries)
@@ -42,7 +42,15 @@ class Emitter_Server(object):
 	def emitter_func(self, format):
 		def func(data):
 			self.em_cnt += 1
-			return data
+			key_len = unpack("!H", packet[0:2])[0]
+			val_len = unpack("!H", packet[2:4])[0]
+			if format["key"] == "origin":
+				key = str(unpack(str(key_len) + "s", packet[4:4+key_len])[0], encoding="ASCII")
+			else:
+				key = format["key"]
+			
+			val = unpack("!I", packet[4+key_len:4+key_len+val_len])[0]
+			return key+' '+str(val)+'\n'
 
 		return func
 
