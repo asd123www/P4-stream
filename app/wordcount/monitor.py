@@ -1,5 +1,5 @@
 from src.monitor import Monitor
-from src.query_operators import PacketStream
+from src.packetstream import PacketStream
 from config.config_hw import conf
 
 queries = [PacketStream(1, 'WordCount')
