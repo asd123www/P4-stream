@@ -10,5 +10,3 @@ bfrt.word_count_sketch.SwitchIngress.t2.dump()
 
 bfrt.word_count_sketch.SwitchIngress.t3.add_with_a3(c_3 = 0)
 bfrt.word_count_sketch.SwitchIngress.t3.dump()
-
-

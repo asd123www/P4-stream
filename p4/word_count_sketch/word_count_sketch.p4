@@ -152,7 +152,7 @@ control SwitchIngress(
         ig_dprsr_md.drop_ctl = 1;
     }
     
-    table ipv4_lpm {
+    table t2 {
         key = {
             hdr.ipv4.dst_addr: lpm;
         }
