@@ -34,7 +34,12 @@ class Emitter_Server(object):
 		self.emitter = Emitter(self.conf, self.queries)
 
 	def spark_build(self, spark_code):
-		def func(kvs):
+		def func(data):
+			def kv_split(x):
+				kv = x[4:].split(' ')
+				return kv[0], int(kv[1])
+
+			kvs = data.map(kv_split)
 			return eval(spark_code)
 
 		return func
