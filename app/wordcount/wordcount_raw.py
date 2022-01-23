@@ -18,6 +18,15 @@ probs /= np.sum(probs)
 WORDCOUNT_QID = 1
 WORDCOUNT_THRESH = 3
 
+q_conf = {
+	"qid":WORDCOUNT_QID,
+	"src_addr":"10.0.0.9",
+	"src_port":1111,
+	"dst_addr":"10.0.0.10",
+	"dst_port":2222,
+	"sd_iter":100
+}
+
 class WordCountRaw(object):
 
 	def __init__(self, conf):
@@ -84,18 +93,9 @@ class WordCountRaw(object):
 
 	def output(self, kvs):
 		print(kvs)
-	
+
 if __name__ == '__main__':
 
-	q_conf = {
-		"qid":WORDCOUNT_QID,
-		"src_addr":"10.1.100.1",
-		"src_port":1111,
-		"dst_addr":"10.1.100.2",
-		"dst_port":2222,
-		"sd_iter":100
-	}
-	
 	conf["p4_conf"].update({
 		"app":"simple_l3"
 		})

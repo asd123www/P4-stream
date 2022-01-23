@@ -40,11 +40,30 @@ Runtime(conf, [queries])# 以这些应用运行
 
 ## 测试
 
+目前写了monitor, emitter_server,p4_server
+
+*   monitor负责管理整个系统，生成p4代码、spark代码、emitter格式
+*   p4_server负责接收monitor发来的p4代码并运行
+*   emitter_server负责接收monitor发来的emitter格式并进行emit
+
 #### bf1
 
 *   不需要进入venv环境
+*   注意不要加sudo
+*   `-d` 代表debug模式，这会跳过P4Generator
 
 ```shell
-export PYTHONPATH=$PWD
-python3 src/p4_driver.py simple_l3
+PYTHONPATH=$PWD python3 src/p4_server.py -s zcq -d
+```
+
+#### dl9
+
+```shell
+sudo PYTHONPATH=$PWD python3 src/emitter_server.py
+```
+
+#### dl10
+
+```shell
+sudo PYTHONPATH=$PWD python3 src/monitor.py
 ```

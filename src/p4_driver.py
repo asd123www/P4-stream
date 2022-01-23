@@ -122,6 +122,10 @@ class P4Driver(object):
 		self.p4_driver_command_thread.start()
 		time.sleep(2)
 
+	def exit(self):
+		_async_raise(self.p4_driver_thread.ident, SystemExit)
+
+
 if __name__ == "__main__":
 	if len(sys.argv) < 2:
 		print("require at least 1 arg")
@@ -133,3 +137,11 @@ if __name__ == "__main__":
 	})
 	p4driver = P4Driver(p4_conf=p4_conf)
 	p4driver.start()
+	
+	try:
+		while True:
+			a = input()
+			if a == "exit":
+				break
+	finally:
+		p4driver.exit()
