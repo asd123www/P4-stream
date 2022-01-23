@@ -10,7 +10,7 @@ import re
 from src.utils import *
 from src.p4_driver import P4Driver
 from p4_compiler.P4Generator import P4Generator
-
+from src.spark_generator import SparkGenerator
 
 
 class Monitor(object):
@@ -22,17 +22,18 @@ class Monitor(object):
 		p4_queries = []
 		spark_queries = []
 		for query in queries:
-			p4_queriy, spark_query = query.split()
-			p4_queries.append(p4_queriy)
+			p4_query, spark_query, success = query.split()
+			assert(success)
+			p4_queries.append(p4_query)
 			spark_queries.append(spark_query)
 
 		# Generate .p4 file, format, command.py
-		p4_code, sh_code, em_formats = "", "", []
-		p4_code, sh_code, em_formats = P4Generator(p4_queries).solve()
+		p4_code, sh_code, em_formats = "", "", [{"qid":0, "qname":"test", "em_format":"origin"}]
+		# p4_code, sh_code, em_formats = P4Generator(p4_queries).solve()
 
 		# Generate spark file
-		em_formats = []
-		# em_formats = SparkGenerator(em_formats, spark_queries).solve()
+		# em_formats = []
+		em_formats = SparkGenerator(em_formats, spark_queries).solve()
 
 		# connect to switch
 		print("=== connecting to switch ===")
@@ -52,6 +53,8 @@ class Monitor(object):
 		print("=== waiting for sender")
 		sd_listener = Listener((self.conf["sd_conf"]["server_addr"], self.conf["sd_conf"]["server_port"]))
 		self.sd_conn = sd_listener.accept()
+		self.sd_conn.send(queries)
+		assert (self.sd_conn.recv() == "ready")
 		
 		while True:
 			if self.poll():
