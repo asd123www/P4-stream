@@ -36,5 +36,3 @@ while True:
     while True:
         if curtime != int(time.time()):
             break
-    
-        
