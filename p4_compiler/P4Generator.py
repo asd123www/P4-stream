@@ -1,5 +1,5 @@
 import sys
-from StaticCode import P4String
+from p4_compiler.StaticCode import P4String
 
 
 '''
