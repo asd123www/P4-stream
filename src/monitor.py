@@ -28,8 +28,8 @@ class Monitor(object):
 			spark_queries.append(spark_query)
 
 		# Generate .p4 file, format, command.py
-		p4_code, sh_code, em_formats = "", "", [{"qid":0, "qname":"test", "em_format":"origin"}]
-		# p4_code, sh_code, em_formats = P4Generator(p4_queries).solve()
+		# p4_code, sh_code, em_formats = "", "", [{"qid":0, "qname":"test", "em_format":"origin"}]
+		p4_code, sh_code, em_formats = P4Generator(p4_queries).solve()
 
 		# Generate spark file
 		# em_formats = []

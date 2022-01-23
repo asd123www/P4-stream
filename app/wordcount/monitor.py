@@ -8,7 +8,7 @@ qconf = {
 }
 
 queries = [PacketStream(0, 'WordCount', qconf)
-			.Reduce('add3', 'sum', 3, 4096)
+			.Reduce('origin', 'sum', 3, 4096)
         	.Filter('origin', '32w3', '>=')
 			]
 

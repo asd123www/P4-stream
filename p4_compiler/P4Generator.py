@@ -1,3 +1,5 @@
+from curses import keyname
+from dis import show_code
 import sys
 from p4_compiler.StaticCode import P4String
 
@@ -273,10 +275,11 @@ class P4Generator():
         
         return
 
-    def printStr(self, pathname):
+    def printStr(self, s, pathname):
         with open(pathname, mode = 'w') as file:
-            for line in self.lst:
-                file.write(line + '\n')
+            file.write(s)
+            # for line in self.lst:
+            #     file.write(line + '\n')
 
             # lst = self.code["apply"]
             # for line in lst:
@@ -295,22 +298,28 @@ class P4Generator():
         # you need to change the path!
         self.printStr("/home/bfsde/wzz-p4-stream/p4-stream/p4_compiler/test.p4")
         '''
-
+        
+        # sudo PYTHONPATH=$PWD python3 app/wordcount/monitor.py
+		# p4_code, sh_code, em_formats = "", "", [{"qid":0, "qname":"test", "em_format":"origin"}]
 
         # only support one query now.
+
+        # print (type(self.PacketStream))
+        p4_code = ''
+        sh_code = ''
+        em_formats = []
         for p4_query in self.PacketStream:
-            for operator in p4_query:
-                print(operator)
-            
-            for operator in p4_query:
+            for operator in p4_query.operators:
                 if operator[0] == 'Map':
-                    self.Map(operator[1])
+                    self.Map(*operator[1])
                 elif operator[0] == 'Filter':
-                    self.Filter(operator[1])
+                    self.Filter(*operator[1])
                 elif operator[0] == 'Reduce':
-                    self.Reduce(operator[1])
-            
-            s = ''
-            for line in self.lst: s += line + '\n'
-        
-        
+                    self.Reduce(*operator[1])
+
+            self.P4String.generate()
+            for line in self.lst: p4_code += line + '\n'
+
+            em_formats.append({"qid": p4_query.qid, "qname": p4_query.qname, "em_format": self.keyname[-1]})
+
+        return p4_code, sh_code, em_formats
