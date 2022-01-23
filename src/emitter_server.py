@@ -71,7 +71,7 @@ class Emitter_Server(object):
 
 	def get_result(self):
 		
-		return "Emitter : totally recv messages: %d" % self.em_cnt
+		return self.em_cnt
 	
 
 if __name__ == "__main__":
@@ -81,7 +81,7 @@ if __name__ == "__main__":
 	print("listening, waiting for monitor")
 	conn = listener.accept()
 	try:
-		print("=== accepted")
+		print("=== accepted ===")
 		formats = conn.recv()
 
 		em_server = Emitter_Server(em_conf, formats)
@@ -93,6 +93,8 @@ if __name__ == "__main__":
 		while True:
 			msg = conn.recv()
 			if msg == "stop":
+				# wait for all messages to be processed
+				time.sleep(2)
 				em_server.stop()
 				conn.send(em_server.get_result())
 				break

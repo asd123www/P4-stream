@@ -1,8 +1,14 @@
 import os
+
+ISECHO = False
+
 sd_conf = {
 		"send_iface": "enp129s0f1",
 		"server_addr": "10.16.0.10",
 		"server_port": 2010,
+		"echo": ISECHO,
+		"echo_addr": "10.16.0.10",
+		"echo_port": 2033,
 	}
 
 em_conf = {
@@ -10,7 +16,10 @@ em_conf = {
 		"spark_addr" : "localhost",
 		"spark_port" : 3002,
 		"server_addr" : "10.16.0.9",
-		"server_port" : 3010
+		"server_port" : 3010,
+		"echo": ISECHO,
+		"echo_addr": "10.16.0.10",
+		"echo_port": 2033,
 	}
 
 p4_conf = {

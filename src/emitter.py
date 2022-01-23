@@ -48,7 +48,7 @@ class Emitter(object):
 			if self._stop_event.is_set():
 				break
 
-			sniff(iface=str(self.sniff_iface), prn=lambda x: self.process_packet(x), timeout=2)
+			sniff(iface=str(self.sniff_iface), prn=lambda x: self.process_packet(x), timeout=1)
 
 		self.listener.close()
 		for query in self.queries:
