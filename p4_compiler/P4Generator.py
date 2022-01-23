@@ -270,7 +270,7 @@ class P4Generator():
         reduce_t = ReduceOperator(self, key, operation, num, length)
         name = reduce_t.generate()
         self.operators.append(name)
-
+        
         return
 
     def printStr(self, pathname):
@@ -286,11 +286,31 @@ class P4Generator():
     
     def solve(self):
         # the wordCount instance.
+        '''
         self.Map('origin', 'identity', '32w0', '+')
         self.Filter('identity', '32w0', '>=')
         self.Map('identity', 'add3', '32w3', '+')
-        self.Reduce('add3', 'sum', 3, 4096)
         self.P4String.generate()
 
         # you need to change the path!
-        self.printStr("/home/bfsde/wzz-p4-stream/p4-stream/p4-compiler/test.p4")
+        self.printStr("/home/bfsde/wzz-p4-stream/p4-stream/p4_compiler/test.p4")
+        '''
+
+
+        # only support one query now.
+        for p4_query in self.PacketStream:
+            for operator in p4_query:
+                print(operator)
+            
+            for operator in p4_query:
+                if operator[0] == 'Map':
+                    self.Map(operator[1])
+                elif operator[0] == 'Filter':
+                    self.Filter(operator[1])
+                elif operator[0] == 'Reduce':
+                    self.Reduce(operator[1])
+            
+            s = ''
+            for line in self.lst: s += line + '\n'
+        
+        

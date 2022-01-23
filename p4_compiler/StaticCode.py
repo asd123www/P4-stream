@@ -91,8 +91,15 @@ class P4String():
 		# func_2.apply(hdr, ig_md);
 		# func_3.apply(hdr, ig_md);
         self.generator.lst.append('')
-        
-                
+
+        '''
+        if multiple values, then choose the last one.
+        '''
+        if len(self.generator.keyname) > 1:
+            old_key = self.generator.keyname[0]
+            new_key = self.generator.keyname[-1]
+            self.generator.lst.append(tab*2 + self.generator.findVarStr(old_key, 'value') +' = '+ self.generator.findVarStr(new_key, 'value') +';')
+
 
         self.generator.lst.append(tab*2 + "ipv4_lpm.apply();")
         self.generator.lst.append(tab + "}")
