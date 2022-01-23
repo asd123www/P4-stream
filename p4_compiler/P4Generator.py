@@ -213,7 +213,8 @@ class P4Generator():
 
         self.sh_code = ''
         # ip_address, length, mac_address, port.
-        self.lpmEntries = [['10.1.100.2', '32', '8e:cd:61:c6:12:5c', '1']]
+        
+        self.lpmEntries = [['10.1.100.2', '32', '8e:cd:61:c6:12:5c', '60']]
         self.arraylist = []
         
         # The code we generate, incremental construct.
