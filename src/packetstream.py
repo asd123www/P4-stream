@@ -24,4 +24,4 @@ class PacketStream(object):
 			print("don not have enough operators")
 			return None, None, False
 		
-		return PacketStream(self.qid, self.qname, self.qconf self.operators[0:t]), PacketStream(self.qid, self.qname, self.qconf, self.operators[t:]), True
+		return PacketStream(self.qid, self.qname, self.qconf, self.operators[0:t]), PacketStream(self.qid, self.qname, self.qconf, self.operators[t:]), True
