@@ -1,6 +1,7 @@
 from curses import keyname
 from dis import show_code
 import sys
+import os
 from p4_compiler.StaticCode import P4String
 
 
@@ -275,9 +276,13 @@ class P4Generator():
         
         return
 
-    def printStr(self, s, pathname):
-        with open(pathname, mode = 'w') as file:
-            file.write(s)
+    def readStr(self, pathname):
+
+        dirname = os.path.dirname(__file__)
+
+        with open(dirname + pathname, mode = 'r') as file:
+            for line in file:
+                self.lst.append(line[:-1])
             # for line in self.lst:
             #     file.write(line + '\n')
 
@@ -308,6 +313,10 @@ class P4Generator():
         p4_code = ''
         sh_code = ''
         em_formats = []
+
+
+        self.readStr("/p4-code/half.p4")
+
         for p4_query in self.PacketStream:
             for operator in p4_query.operators:
                 if operator[0] == 'Map':
@@ -318,8 +327,16 @@ class P4Generator():
                     self.Reduce(*operator[1])
 
             self.P4String.generate()
-            for line in self.lst: p4_code += line + '\n'
 
             em_formats.append({"qid": p4_query.qid, "qname": p4_query.qname, "em_format": self.keyname[-1]})
+
+        self.readStr("/p4-code/pipe.p4")
+
+        for line in self.lst: p4_code += line + '\n'
+
+
+        # print(os.path.dirname(__file__) + "/test.p4")
+        # with open(os.path.dirname(__file__) + "/test.p4", "w") as file:
+        #     file.write(p4_code)
 
         return p4_code, sh_code, em_formats
