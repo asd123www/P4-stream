@@ -49,6 +49,8 @@ class Emitter_Server(object):
 			self.em_cnt += 1
 			key_len = unpack("!H", packet[0:2])[0]
 			val_len = unpack("!H", packet[2:4])[0]
+			# currently fix it to origin
+			em_format = "origin"
 			if em_format == "origin":
 				key = str(unpack(str(key_len) + "s", packet[4:4+key_len])[0], encoding="ASCII")
 			else:
@@ -71,7 +73,7 @@ class Emitter_Server(object):
 
 	def get_result(self):
 		
-		return "Emitter : totally recv messages: %d" % self.em_cnt
+		return self.em_cnt
 	
 
 if __name__ == "__main__":
@@ -81,7 +83,7 @@ if __name__ == "__main__":
 	print("listening, waiting for monitor")
 	conn = listener.accept()
 	try:
-		print("=== accepted")
+		print("=== accepted ===")
 		formats = conn.recv()
 
 		em_server = Emitter_Server(em_conf, formats)
@@ -93,6 +95,8 @@ if __name__ == "__main__":
 		while True:
 			msg = conn.recv()
 			if msg == "stop":
+				# wait for all messages to be processed
+				time.sleep(2)
 				em_server.stop()
 				conn.send(em_server.get_result())
 				break
