@@ -46,17 +46,18 @@ class Emitter_Server(object):
 
 	def emitter_func(self, em_format):
 		def func(data):
+			# print("[Emitter Server] ", data)
 			self.em_cnt += 1
-			key_len = unpack("!H", packet[0:2])[0]
-			val_len = unpack("!H", packet[2:4])[0]
+			key_len = unpack("!H", data[0:2])[0]
+			val_len = unpack("!H", data[2:4])[0]
 			# currently fix it to origin
 			em_format = "origin"
 			if em_format == "origin":
-				key = str(unpack(str(key_len) + "s", packet[4:4+key_len])[0], encoding="ASCII")
+				key = str(unpack(str(key_len) + "s", data[4:4+key_len])[0], encoding="ASCII")
 			else:
 				key = em_format
 			
-			val = unpack("!I", packet[4+key_len:4+key_len+val_len])[0]
+			val = unpack("!I", data[4+key_len:4+key_len+val_len])[0]
 			return key+' '+str(val)+'\n'
 
 		return func
@@ -95,19 +96,22 @@ if __name__ == "__main__":
 		while True:
 			msg = conn.recv()
 			if msg == "stop":
+				print("received stop event")
 				# wait for all messages to be processed
-				time.sleep(2)
+				time.sleep(5)
 				em_server.stop()
 				conn.send(em_server.get_result())
 				break
 				
 			if msg == "clear":
+				print("--- clear ---")
 				em_server.clear()
 				conn.send("clear ack")
-				break
 
 	except:
 		traceback.print_exc()
+	finally:
+		print("=== exit ===")
 		if em_server != None:
 			em_server.stop()
-		exit(1)
+		exit(0)
