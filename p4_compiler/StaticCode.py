@@ -30,10 +30,10 @@ class P4String():
         # the GET_THRESHOLD() function.
         self.generator.lst.append(tab + "GET_THRESHOLD() get_threshold;")
 
-        prefix = 'bfrt.simple_l3.pipe.SwitchIngress.get_threshold.tbl_get_threshold'
-        self.generator.sh_code += '{}.clear()\n'.format(prefix)
-        self.generator.sh_code += '{}.add_with_tbl_get_threshold_act(qid={}, threshold={})\n'.format(prefix, qid, 10)
-        self.generator.sh_code += '{}.dump()\n\n\n'.format(prefix)
+        # prefix = 'bfrt.simple_l3.pipe.SwitchIngress.get_threshold.tbl_get_threshold'
+        # self.generator.sh_code += '{}.clear()\n'.format(prefix)
+        # self.generator.sh_code += '{}.add_with_tbl_get_threshold_act(qid={}, threshold={})\n'.format(prefix, qid, 10)
+        # self.generator.sh_code += '{}.dump()\n\n\n'.format(prefix)
 
         
         # the drop function
