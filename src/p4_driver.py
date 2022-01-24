@@ -110,7 +110,7 @@ class P4Driver(object):
 		
 	def start(self):
 		# start everything
-		self.compile()
+		# self.compile()
 		if self.conf["hw"] != True:
 			self.p4_model_thread = Thread(name="p4_model", target=self.start_model)
 			self.p4_model_thread.start()
@@ -120,7 +120,7 @@ class P4Driver(object):
 		time.sleep(3)
 		self.p4_driver_command_thread = Thread(name="p4_command", target=self.send_command)
 		self.p4_driver_command_thread.start()
-		time.sleep(2)
+		time.sleep(10)
 
 	def exit(self):
 		_async_raise(self.p4_driver_thread.ident, SystemExit)
