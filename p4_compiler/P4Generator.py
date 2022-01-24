@@ -387,11 +387,11 @@ class P4Generator():
 
         self.shiftFlagCode()
 
-        print(os.path.dirname(__file__) + "/test.p4")
-        # print(self.sh_code)
-        with open(os.path.dirname(__file__) + "/test.py", "w") as file:
-            file.write(self.sh_code)
-        with open(os.path.dirname(__file__) + "/test.p4", "w") as file:
-            file.write(p4_code)
+        # print(os.path.dirname(__file__) + "/test.p4")
+        # # print(self.sh_code)
+        # with open(os.path.dirname(__file__) + "/test.py", "w") as file:
+        #     file.write(self.sh_code)
+        # with open(os.path.dirname(__file__) + "/test.p4", "w") as file:
+        #     file.write(p4_code)
 
         return p4_code, self.sh_code, em_formats
