@@ -66,6 +66,7 @@ class Emitter(object):
 			return
 
 		data = p['UDP'].load
+		# print("[Emitter] ", data)
 		src_port = p['UDP'].sport
 		dst_port = p['UDP'].dport
 
