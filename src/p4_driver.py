@@ -110,7 +110,7 @@ class P4Driver(object):
 		
 	def start(self):
 		# start everything
-		# self.compile()
+		self.compile()
 		if self.conf["hw"] != True:
 			self.p4_model_thread = Thread(name="p4_model", target=self.start_model)
 			self.p4_model_thread.start()
