@@ -37,24 +37,25 @@ class Monitor(object):
 
 		# connect to switch
 		print("=== connecting to switch ===")
-		self.p4_conn = Client((self.conf["p4_conf"]["server_addr"], self.conf["p4_conf"]["server_port"]))
-		self.p4_conn.send((p4_code, sh_code))
-		assert (self.p4_conn.recv() == "ready")
-		print("=== connected to switch ===")
+		# self.p4_conn = Client((self.conf["p4_conf"]["server_addr"], self.conf["p4_conf"]["server_port"]))
+		# self.p4_conn.send((p4_code, sh_code))
+		# assert (self.p4_conn.recv() == "ready")
+		# print("=== connected to switch ===")
+
+		# waiting for sender
+		print("=== connecting to sender ===")
+		self.sd_client = Client((self.conf["sd_conf"]["server_addr"], self.conf["sd_conf"]["server_port"]))
+		self.sd_client.send(queries)
 
 		# connect to emitter
 		print("=== connecting to emitter ===")
 		self.em_conn = Client((self.conf["em_conf"]["server_addr"], self.conf["em_conf"]["server_port"]))
 		self.em_conn.send(em_formats)
+		
+		assert (self.sd_client.recv() == "ready")
 		assert (self.em_conn.recv() == "ready")
 		print("=== connected to emitter ===")
 
-		# waiting for sender
-		print("=== waiting for sender")
-		sd_listener = Listener((self.conf["sd_conf"]["server_addr"], self.conf["sd_conf"]["server_port"]))
-		self.sd_conn = sd_listener.accept()
-		self.sd_conn.send(queries)
-		assert (self.sd_conn.recv() == "ready")
 		
 		while True:
 			if self.poll():
@@ -62,13 +63,13 @@ class Monitor(object):
 				break
 
 	def poll(self):
-		if self.sd_conn.poll(1):
-			opt, arg = self.sd_conn.recv()
+		if self.sd_client.poll(1):
+			opt, arg = self.sd_client.recv()
 			if opt == "start":
 				self.em_conn.send("clear")
 				assert (self.em_conn.recv() == "clear ack")
 				print("=== start ===")
-				self.sd_conn.send("start ack")
+				self.sd_client.send("start ack")
 			
 			if opt == "finish":
 				t, cnt, bcnt = arg
@@ -82,7 +83,7 @@ class Monitor(object):
 				print("emitter received msg: %d" % em_cnt)
 				print("emitter throughput %f msg/s" % em_cnt/t)
 				print("emitter msg / sender msg = %f" % em_cnt / cnt)
-				self.sd_conn.send("stop")
+				self.sd_client.send("stop")
 				
 				return True
 		

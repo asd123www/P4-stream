@@ -1,4 +1,3 @@
-from ctypes.wintypes import WORD
 from src.sender_server import SenderServer
 from app.wordcount.wordcount import WORDCOUNT_QID
 from config.config_hw import sd_conf

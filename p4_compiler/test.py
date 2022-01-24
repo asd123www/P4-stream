@@ -9,7 +9,7 @@ bfrt.simple_l3.pipe.reduce_origin_sum_3_4096_1.t3.dump()
 
 
 bfrt.simple_l3.pipe.SwitchIngress.get_threshold.tbl_get_threshold.clear()
-bfrt.simple_l3.pipe.SwitchIngress.get_threshold.tbl_get_threshold.add_with_tbl_get_threshold_act(qid=0, threshold=10)
+bfrt.simple_l3.pipe.SwitchIngress.get_threshold.tbl_get_threshold.add_with_tbl_get_threshold_act(qid=1, threshold=10)
 bfrt.simple_l3.pipe.SwitchIngress.get_threshold.tbl_get_threshold.dump()
 
 
