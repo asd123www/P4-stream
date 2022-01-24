@@ -257,6 +257,7 @@ control SwitchIngress(
 
 	apply {
 		stflag.apply();
+		get_threshold.apply(hdr, ig_md);
 
 		func_0.apply(hdr, ig_md);
 		func_1.apply(hdr, ig_md);
