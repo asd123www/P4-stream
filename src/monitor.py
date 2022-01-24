@@ -34,6 +34,8 @@ class Monitor(object):
 		# Generate spark file
 		# em_formats = []
 		em_formats = SparkGenerator(em_formats, spark_queries).solve()
+		# print(em_formats)
+		# exit(0)
 
 		# connect to switch
 		print("=== connecting to switch ===")
