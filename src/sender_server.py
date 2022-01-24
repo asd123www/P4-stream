@@ -77,6 +77,10 @@ class SenderServer(object):
 			key = hex(hash_key)
 			
 		key_len = len(key)
+		if key_len & 3:
+			key_suf = 4 - (key_len & 3)
+			key = key + '_' * key_suf
+			key_len += key_suf
 		val_len = 4
 
 		length = 4 + key_len + val_len
