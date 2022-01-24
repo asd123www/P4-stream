@@ -13,6 +13,7 @@ sd_conf = {
 		"echo": ISECHO,
 		"echo_addr": "10.16.0.10",
 		"echo_port": 2033,
+		"to_file": False,
 	}
 
 em_conf = {

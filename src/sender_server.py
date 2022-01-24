@@ -49,6 +49,10 @@ class SenderServer(object):
 			self.echo_server = SenderServer.EchoServer(self)
 			self.echo_thread = Thread(name="echo server", target=self.echo_server.start)
 			self.echo_thread.start()
+		if self.conf["to_file"]:
+			if not os.path.exists("log/"):
+        		os.mkdir("log/")
+			self.file = open("log/send.log", "wb")
 
 		self.queries = self.conn.recv()
 		self.formats = {}
@@ -92,6 +96,9 @@ class SenderServer(object):
 		data += pack("!I", val)
 
 		packet = Ether() / IP(src=self.conf["src_addr"], dst=self.conf["dst_addr"]) / UDP(sport=self.conf["src_port"], dport=self.conf["dst_port"]) / data
+		
+		if self.conf["to_file"]:
+
 		sendp(packet, iface=self.conf["send_iface"], verbose=0)
 
 		self.send_bytes += len(packet) 
