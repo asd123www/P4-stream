@@ -154,9 +154,9 @@ class ReduceOperator():
             # bfrt.simple_l3.pipe.SwitchIngress.t2.add_with_a2(c_2 = 0)
             # bfrt.simple_l3.pipe.SwitchIngress.t2.dump()
             prefix = 'bfrt.simple_l3.pipe.{}.t'.format(name)+str(i+1)
-            self.generator.sh_code += '{}.clear()\n'.format(prefix)
-            self.generator.sh_code += '{}.add_with_a{}(c_{} = 0)\n'.format(prefix, i+1, i+1)
-            self.generator.sh_code += '{}.dump()\n\n\n'.format(prefix)
+            # self.generator.sh_code += '{}.clear()\n'.format(prefix)
+            # self.generator.sh_code += '{}.add_with_a{}(c_{} = 0)\n'.format(prefix, i+1, i+1)
+            # self.generator.sh_code += '{}.dump()\n\n\n'.format(prefix)
 
             self.generator.lst.append(tab + 'table t'+str(i+1)+' {')
             self.generator.lst.append(tab*2 + 'key = {')
@@ -314,6 +314,10 @@ class P4Generator():
             #     file.write(str + line + '\n')
         
     def shiftFlagCode(self):
+
+        return 
+
+        
         tab = chr(9)
         self.sh_code += 'import time\n\nflag = 0\nwhile True:\n'
 
@@ -383,11 +387,11 @@ class P4Generator():
 
         self.shiftFlagCode()
 
-        print(os.path.dirname(__file__) + "/test.p4")
-        # print(self.sh_code)
-        with open(os.path.dirname(__file__) + "/test.py", "w") as file:
-            file.write(self.sh_code)
-        with open(os.path.dirname(__file__) + "/test.p4", "w") as file:
-            file.write(p4_code)
+        # print(os.path.dirname(__file__) + "/test.p4")
+        # # print(self.sh_code)
+        # with open(os.path.dirname(__file__) + "/test.py", "w") as file:
+        #     file.write(self.sh_code)
+        # with open(os.path.dirname(__file__) + "/test.p4", "w") as file:
+        #     file.write(p4_code)
 
         return p4_code, self.sh_code, em_formats

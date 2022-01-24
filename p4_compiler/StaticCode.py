@@ -34,7 +34,6 @@ class P4String():
         self.generator.sh_code += '{}.clear()\n'.format(prefix)
         self.generator.sh_code += '{}.add_with_tbl_get_threshold_act(qid={}, threshold={})\n'.format(prefix, qid, 10)
         self.generator.sh_code += '{}.dump()\n\n\n'.format(prefix)
-
         
         # the drop function
         self.generator.lst.append('')
@@ -106,6 +105,8 @@ class P4String():
         self.generator.lst.append('')
         self.generator.lst.append(tab + "apply {")
         self.generator.lst.append(tab*2 + "stflag.apply();")
+        self.generator.lst.append(tab*2 + 'get_threshold.apply(hdr, ig_md);')
+
 
         # call each function sequentially.
         self.generator.lst.append('')
