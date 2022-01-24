@@ -75,7 +75,7 @@ struct metadata_t {
 #include "API_threshold.p4"
 
 
-control CM_UPDATE_KEY(
+control CSum_UPDATE_KEY(
   inout header_t hdr,
   inout bit<1> flag, 
   out bit<32> est)(bit<32> polynomial)
