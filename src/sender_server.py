@@ -98,7 +98,7 @@ class SenderServer(object):
 		packet = Ether() / IP(src=self.conf["src_addr"], dst=self.conf["dst_addr"]) / UDP(sport=self.conf["src_port"], dport=self.conf["dst_port"]) / data
 		
 		if self.conf["to_file"]:
-
+			pass
 		sendp(packet, iface=self.conf["send_iface"], verbose=0)
 
 		self.send_bytes += len(packet) 
