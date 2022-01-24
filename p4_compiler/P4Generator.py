@@ -194,6 +194,10 @@ class ReduceOperator():
         # ig_md.c_2 = (bit<1>) (ig_md.est_12 >> 31);
         # t2.apply();
 
+
+        # you should restore the result in header.value
+        self.generator.lst.append(tab*2+self.generator.findVarStr('origin', 'value')+' = ig_md.est_'+str(self.num)+';')
+
         self.generator.lst.append(tab + '}')
         self.generator.lst.append('}')
         self.generator.lst.append('\n')
@@ -361,6 +365,7 @@ class P4Generator():
 
         for p4_query in self.PacketStream:
             for operator in p4_query.operators:
+                # print(operator[0])
                 if operator[0] == 'Map':
                     self.Map(*operator[1])
                 elif operator[0] == 'Filter':
@@ -378,11 +383,11 @@ class P4Generator():
 
         self.shiftFlagCode()
 
-        # print(os.path.dirname(__file__) + "/test.p4")
-        # # print(self.sh_code)
-        # with open(os.path.dirname(__file__) + "/test.py", "w") as file:
-        #     file.write(self.sh_code)
-        # with open(os.path.dirname(__file__) + "/test.p4", "w") as file:
-        #     file.write(p4_code)
+        print(os.path.dirname(__file__) + "/test.p4")
+        # print(self.sh_code)
+        with open(os.path.dirname(__file__) + "/test.py", "w") as file:
+            file.write(self.sh_code)
+        with open(os.path.dirname(__file__) + "/test.p4", "w") as file:
+            file.write(p4_code)
 
         return p4_code, self.sh_code, em_formats
