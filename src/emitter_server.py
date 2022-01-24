@@ -49,6 +49,8 @@ class Emitter_Server(object):
 			self.em_cnt += 1
 			key_len = unpack("!H", packet[0:2])[0]
 			val_len = unpack("!H", packet[2:4])[0]
+			# currently fix it to origin
+			em_format = "origin"
 			if em_format == "origin":
 				key = str(unpack(str(key_len) + "s", packet[4:4+key_len])[0], encoding="ASCII")
 			else:

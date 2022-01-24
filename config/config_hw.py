@@ -1,6 +1,6 @@
 import os
 
-ISECHO = False
+ISECHO = True
 
 sd_conf = {
 		"send_iface": "enp129s0f1",
