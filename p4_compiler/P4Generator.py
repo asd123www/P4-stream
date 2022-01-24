@@ -182,7 +182,7 @@ class ReduceOperator():
         # fill the apply content.
         for i in range(self.num):
             func = 'update_'+str(self.generator.counter)+'_'+str(i)
-            self.generator.arraylist.append('bfrt.simple_l3.pipe.{}.{}'.format(name, func))
+            self.generator.arraylist.append('bfrt.simple_l3.pipe.SwitchIngress.func_{}.{}'.format(self.generator.counter-1, func))
             self.generator.lst.append(tab*2+func+'.apply(hdr, ig_md.flag, ig_md.est_'+str(i+1)+');')
         
         # fill the judge variable.
@@ -314,10 +314,6 @@ class P4Generator():
             #     file.write(str + line + '\n')
         
     def shiftFlagCode(self):
-
-        return 
-
-        
         tab = chr(9)
         self.sh_code += 'import time\n\nflag = 0\nwhile True:\n'
 
