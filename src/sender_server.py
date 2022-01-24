@@ -51,7 +51,7 @@ class SenderServer(object):
 			self.echo_thread.start()
 		if self.conf["to_file"]:
 			if not os.path.exists("log/"):
-        		os.mkdir("log/")
+				os.mkdir("log/")
 			self.file = open("log/send.log", "wb")
 
 		self.queries = self.conn.recv()
