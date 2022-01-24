@@ -140,10 +140,10 @@ control SwitchIngress(
     CM_UPDATE_KEY(32w0x0f79f523) update_2;
     CM_UPDATE_KEY(32w0x6b8cb0c5) update_3;
 
-    action ipv4_forward(mac_addr_t dst_addr, PortId_t port) {
+    action ipv4_forward(mac_addr_t new_dst_addr, PortId_t port) {
         ig_tm_md.ucast_egress_port = port;
         hdr.ethernet.src_addr = hdr.ethernet.dst_addr;
-        hdr.ethernet.dst_addr = dst_addr;
+        hdr.ethernet.dst_addr = new_dst_addr;
         hdr.ipv4.ttl = hdr.ipv4.ttl - 1;
         hdr.kvs.val_word.val_word_1.data = ig_md.est_3;
     }
@@ -152,7 +152,7 @@ control SwitchIngress(
         ig_dprsr_md.drop_ctl = 1;
     }
     
-    table t2 {
+    table ipv4_lpm {
         key = {
             hdr.ipv4.dst_addr: lpm;
         }
