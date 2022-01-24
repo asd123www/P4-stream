@@ -22,7 +22,12 @@ class SparkDriver(object):
 		self.input = self.ssc.socketTextStream(self.conf["spark_addr"], self.conf["spark_port"])
 		self.output = self.query.spark_build(self.input)
 
-		self.output.pprint()
+		if self.conf["echo"]:
+			echo_conn = Client((self.conf["echo_addr"], self.conf["echo_port"]))
+			self.output.foreachRDD(lambda x: echo_conn.send(x))
+		else:
+			self.output.pprint()
+
 		# self.output.foreachRDD(lambda rdd: rdd.foreach(self.query.output))
 
 		self.ssc.start()

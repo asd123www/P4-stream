@@ -71,13 +71,17 @@ class Monitor(object):
 				self.sd_conn.send("start ack")
 			
 			if opt == "finish":
-				t, cnt = arg
+				t, cnt, bcnt = arg
 				print("=== finish ===")
-				print("total msg : %d, time : %f" % (cnt, t))
+				print("total msg : %d, bytes: %d, time : %f" % (cnt, bcnt, t))
 				print("throughput %f msg/s" % cnt/t)
+				print("sender throughput %f bytes/s" % bcnt/t)
 				self.em_conn.send("stop")
-				em_result = self.em_conn.recv()
-				print(em_result)
+				em_cnt = self.em_conn.recv()
+				print(em_cnt)
+				print("emitter received msg: %d" % em_cnt)
+				print("emitter throughput %f msg/s" % em_cnt/t)
+				print("emitter msg / sender msg = %f" % em_cnt / cnt)
 				self.sd_conn.send("stop")
 				
 				return True
