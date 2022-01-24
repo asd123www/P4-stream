@@ -26,8 +26,10 @@ class SenderServer(object):
 		def start(self):
 			while True:
 				if self.conn.poll(1):
-					self.conn.recv()
+					_ = self.conn.recv()
 					self.echo_cnt += 1
+					if self.echo_cnt <= 10:
+						print("echo received:", _)
 					self.last_time = datetime.datetime.now()
 
 				elif self._stop_event.is_set():
@@ -96,7 +98,7 @@ class SenderServer(object):
 		if self.conf["echo"]:
 			self.echo_server.stop()
 			# wait for all messages to be processed
-			time.sleep(2)
+			time.sleep(5)
 			# this is the time that the last message is echoed
 			self.end_time = self.echo_server.last_time
 			if self.end_time == None:
@@ -106,6 +108,7 @@ class SenderServer(object):
 			self.end_time = datetime.datetime.now()
 
 		t = self.end_time - self.start_time
+		t = t.seconds + t.microseconds / 1000 / 1000
 		self.conn.send(("finish", (t, self.send_cnt, self.send_bytes)))
 		self.conn.send(t)
 		print(self.hash_dict)

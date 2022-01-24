@@ -37,10 +37,10 @@ class Monitor(object):
 
 		# connect to switch
 		print("=== connecting to switch ===")
-		# self.p4_conn = Client((self.conf["p4_conf"]["server_addr"], self.conf["p4_conf"]["server_port"]))
-		# self.p4_conn.send((p4_code, sh_code))
-		# assert (self.p4_conn.recv() == "ready")
-		# print("=== connected to switch ===")
+		self.p4_conn = Client((self.conf["p4_conf"]["server_addr"], self.conf["p4_conf"]["server_port"]))
+		self.p4_conn.send((p4_code, sh_code))
+		assert (self.p4_conn.recv() == "ready")
+		print("=== connected to switch ===")
 
 		# waiting for sender
 		print("=== connecting to sender ===")
@@ -75,15 +75,16 @@ class Monitor(object):
 				t, cnt, bcnt = arg
 				print("=== finish ===")
 				print("total msg : %d, bytes: %d, time : %f" % (cnt, bcnt, t))
-				print("throughput %f msg/s" % cnt/t)
-				print("sender throughput %f bytes/s" % bcnt/t)
+				print("throughput %f msg/s" % (cnt/t))
+				print("sender throughput %f bytes/s" % (bcnt/t))
 				self.em_conn.send("stop")
 				em_cnt = self.em_conn.recv()
 				print(em_cnt)
 				print("emitter received msg: %d" % em_cnt)
-				print("emitter throughput %f msg/s" % em_cnt/t)
-				print("emitter msg / sender msg = %f" % em_cnt / cnt)
+				print("emitter throughput %f msg/s" % (em_cnt/t))
+				print("emitter msg / sender msg = %f" % (em_cnt / cnt))
 				self.sd_client.send("stop")
+				self.p4_conn.send("stop")
 				
 				return True
 		
