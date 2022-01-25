@@ -381,7 +381,7 @@ class P4Generator():
 
         for line in self.lst: p4_code += line + '\n'
 
-        # self.shiftFlagCode()
+        self.shiftFlagCode()
 
         # print(os.path.dirname(__file__) + "/test.p4")
         # # print(self.sh_code)
