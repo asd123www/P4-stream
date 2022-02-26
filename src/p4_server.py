@@ -25,7 +25,7 @@ class P4Server(object):
 		with open(self.p4_file, "w") as f:
 			f.write(p4_code)
 		
-		self.sh_file = os.path.join(self.path, "command.py")
+		self.sh_file = os.path.join(self.path, "command_hw.py")
 		
 		with open(self.sh_file, "w") as f:
 			f.write(sh_code)
@@ -79,6 +79,8 @@ if __name__ == "__main__":
 			with open(os.path.join(p4_conf["p4_path"], "simple_l3_zcq","command_hw.py")) as f:
 				sh_code = f.read()
 				sh_code = re.sub("simple_l3_zcq", p4_conf["tmp_name"], sh_code)
+		else:
+			sh_code = re.sub("simple_l3", p4_conf["tmp_name"], sh_code)
 
 		p4_server = P4Server(p4_conf, p4_code, sh_code)
 		p4_server.start()
@@ -87,11 +89,13 @@ if __name__ == "__main__":
 		while True:
 			msg = conn.recv()
 			if msg == "stop":
+				print("receive stop event")
 				break
 
 	except:
 		traceback.print_exc()
 	
 	finally:
+		print("=== exit ===")
 		p4_server.exit()
 		exit(0)

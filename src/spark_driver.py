@@ -24,7 +24,7 @@ class SparkDriver(object):
 
 		if self.conf["echo"]:
 			echo_conn = Client((self.conf["echo_addr"], self.conf["echo_port"]))
-			self.output.foreachRDD(lambda x: echo_conn.send(x))
+			self.output.foreachRDD(lambda rdd: rdd.foreach(lambda x: echo_conn.send(x)))
 		else:
 			self.output.pprint()
 
