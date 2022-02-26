@@ -1,0 +1,4 @@
+/home/bfsde/wzz-p4-stream/p4-stream/speed_test/build/CMakeFiles/rebuild_cache.dir
+/home/bfsde/wzz-p4-stream/p4-stream/speed_test/build/CMakeFiles/edit_cache.dir
+/home/bfsde/wzz-p4-stream/p4-stream/speed_test/build/CMakeFiles/tcp.dir
+/home/bfsde/wzz-p4-stream/p4-stream/speed_test/build/CMakeFiles/udp.dir
