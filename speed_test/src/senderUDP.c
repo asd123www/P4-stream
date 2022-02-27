@@ -38,6 +38,9 @@
 #define RTE_TEST_TX_DESC_DEFAULT 1024
 /* default port_conf */
 
+
+const int MaxPacket = 1000;
+
 const int num_devices_attached = 1;
 const int devices_attached[32] = {1};
 uint8_t devices_hwaddr[32][6];
@@ -471,7 +474,7 @@ uint16_t src_port, dst_port;
 uint8_t dst_mac[6];
 
 
-packet_data_t* generate_packet(int payload_length) {
+packet_data_t* generate_packet(uint32_t payload_length, char *buf) {
     packet_data_t* pkt = rte_malloc(NULL, sizeof(packet_data_t), 64);
     pkt->data = pkt->mbuf; // 直接把payload放在mbuf偏移 ether+ipv4+udp 的位置即可.
     // 需要晚上问一下郭俊逸.
@@ -509,21 +512,15 @@ packet_data_t* generate_packet(int payload_length) {
     return pkt;
 }
 
-void sender(char *appName, u_int64_t bandwidth, u_int32_t burst_size) {
 
-    uint32_t payload_length = 0;  // length of payload, you should change it to key-value pair.
-    // uint64_t bandwidth = 1e8;   // Mbps while inputting, Bps while processing
-    // uint32_t burst_size = 1e3;
-
-    uint64_t next_send_tick = 0;
-
-
+// test the max speed, the switch is able to handle, so best effort.
+void sender(char *appName, u_int32_t burst_size) {
     dpdk_init("11111", 0);
 
     cqs_core_affinitize_dpdk(0);
 
     dpdk_module_func.load_module();
-    
+
     void* up_handle = dpdk_module_func.init_handle_up(devices_attached[0], 0);
     void* down_handle = dpdk_module_func.init_handle_down(devices_attached[0]);
 
@@ -538,60 +535,46 @@ void sender(char *appName, u_int64_t bandwidth, u_int32_t burst_size) {
     dst_port = 23233;
     s2macaddr((char*)dst_mac, "3c:fd:fe:bb:ca:81");
 
-    // sscanf(argv[1], "%d", &payload_length);
-    // sscanf(argv[2], "%ld", &bandwidth);
-    // sscanf(argv[3], "%d", &burst_size);
-    bandwidth *= 1000000; bandwidth /= 8;
 
-
-
-    const int wordNumber = 7;
     const int wordLength = 100;
-
-    int length[wordNumber];
-    char keys[wordNumber][wordLength];
-    int value[wordNumber]; 
+    char keys[wordLength];
+    packet_data_t *pkt[MaxPacket];
     
-
+    int n = 0;
     int QID = 0;
+
     FILE *file = freopen("/home/bfsde/wzz-p4-stream/p4-stream/data/wordCount.txt", "r", stdin);
     scanf("%d", &QID);
-    for (int i = 0; scanf("%s%d", keys[i], value+i) == 2; ++i);
+    for (int i = 0, value; scanf("%s%d", keys, &value) == 2; ++i) {
+        ++n; // count the # of different packets.
+        int len = strlen(keys);
+
+        // -------------------------------------------------
+
+        unsigned char a[wordLength]; 
+        // Wait to implement: process the key-value pair.
+        // memcpy(a, keys[i], len);
+
+        // -------------------------------------------------
+        
+        pkt[i] = generate_packet(strlen(a), a);
+    }
     fclose(file);
 
-
-
-    for (int i = 0; i < wordNumber; ++i) {
-        length[i] = strlen(keys[i]);
-        payload_length += length[i];
-    }
-    uint32_t SEND_ITER = 100;
-
-    packet_data_t* pkt[wordNumber];
-    for(int i = 0; i < wordNumber; ++i) {
-        // you should define the payload here.
-        unsigned char a[wordLength];
-        memcpy(a, keys[i], length[i]);
-        generate_packet(length[i]);
-    }
-
     uint16_t ip_id = 0;
-    uint64_t sending_length = burst_size * payload_length;
-    ipv4_header_t* ipv4 = pkt[0]->data + sizeof(ethernet_header_t);
-    while(1) {
-        struct timespec time = {0, 0};
-        clock_gettime(CLOCK_MONOTONIC, &time);
-        uint64_t tick = time.tv_sec*1000000000LL + time.tv_nsec;
-        if(tick >= next_send_tick) {
-            for(int i = 0; i < burst_size; i ++) for (int j = 0; j < wordNumber; ++j) {
-                void* ptr = dpdk_module_func.get_wptr(up_handle, pkt, pkt[j]->length);
-                ipv4->id = ntohs(ip_id ++);
-                rte_memcpy(ptr, pkt[j]->data, 64);
-            }
+    for (uint32_t accum = 0;;) {
+        for (int i = 0; i < n; ++i) {
+            ipv4_header_t* ipv4 = pkt[i]->data + sizeof(ethernet_header_t);
+            void* ptr = dpdk_module_func.get_wptr(up_handle, pkt[i], pkt[i]->length);
+            ipv4->id = ntohs(ip_id ++);
+            rte_memcpy(ptr, pkt[i]->data, 64);
+            accum += pkt[i] -> length;
+        }
+        if (accum > burst_size) {
             dpdk_module_func.send_pkts(up_handle);
-            next_send_tick = tick + 1000000000LL * sending_length / bandwidth;
+            accum = 0;
         }
     }
 
-    for(int i = 0; i < wordNumber; ++i) rte_free(pkt[i]);
+    for (int i = 0; i < n; ++i) rte_free(pkt[i]);
 }
