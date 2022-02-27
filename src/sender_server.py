@@ -37,9 +37,9 @@ class SenderServer(object):
 		def stop(self):
 			self._stop_event.set()
 
-	
 	def __init__(self, conf):
-		return
+		return 
+
 		self.conf = conf
 		self.listener = Listener((self.conf["server_addr"], self.conf["server_port"]))
 		print("listening, waiting for monitor")
@@ -65,6 +65,8 @@ class SenderServer(object):
 		self.conn.send("ready")
 
 	def start(self):
+		return 
+
 		print("=== start ===")
 		self.send_cnt = 0
 		self.send_bytes = 0
@@ -108,20 +110,20 @@ class SenderServer(object):
 	def send(self, appName):
 		import ctypes
 
-		libPath = './speed_test/build/lib.so'
+		libPath = './speed_test/build/liblib.so'
 
 		# 1. open the shared library
 		lib = ctypes.CDLL(libPath)
 
 		# 2. tell Python the argument and result types of function mysum
 		# ctypes.c_char_p is char*.
-		lib.sender.restype = ctypes.c_longlong
-		lib.sender.argtypes = [ctypes.c_char_p, ctypes.c_uint64, ctypes.c_uint32]
+		lib.sender.restype = ctypes.c_void_p
+		lib.sender.argtypes = [ctypes.c_wchar_p, ctypes.c_uint64, ctypes.c_uint32]
 		
 		# 3. call function mysum
-		array_sum = lib.mysum(ctypes.c_char_p(appName), array)
-
-		print('sum of array: {}'.format(array_sum))
+		lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint64(100000000), ctypes.c_uint32(1000))
+		
+		print("Finish sending")
 
 
 	def finish(self):

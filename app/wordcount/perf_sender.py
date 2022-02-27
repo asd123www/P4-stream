@@ -14,7 +14,7 @@ with open(dataPath, "w") as f:
 	f.write(f'{WORDCOUNT_QID}\n')
 	for word in words:
 		f.write(f'{word} 1\n')
-
+		
 server.start()
 
 server.send('wordCount')

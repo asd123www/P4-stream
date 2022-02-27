@@ -34,14 +34,16 @@ function(add_dpdk_link_include target_name)
 endfunction()
 
 # generate the .so file
-ADD_LIBRARY(libUDP SHARED src/senderUDP.c)
+ADD_LIBRARY(lib SHARED src/senderUDP.c)
 
 add_executable(udp src/udp.c)
 add_executable(tcp src/tcp.c)
 add_dpdk_link_include(udp)
 add_dpdk_link_include(tcp)
+add_dpdk_link_include(lib)
 # target_link_libraries(udp PUBLIC libnuma)
 target_link_libraries(udp PUBLIC pthread)
 target_link_libraries(tcp PUBLIC pthread)
+target_link_libraries(lib PUBLIC pthread)
 
 # sudo cmake -S . -B /build
