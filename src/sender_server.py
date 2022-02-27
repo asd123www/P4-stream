@@ -39,13 +39,14 @@ class SenderServer(object):
 
 	
 	def __init__(self, conf):
+		return
 		self.conf = conf
 		self.listener = Listener((self.conf["server_addr"], self.conf["server_port"]))
 		print("listening, waiting for monitor")
 		self.conn = self.listener.accept()
 		print("accepted")
 
-		if self.conf["echo"]:
+		if self.conf["echo"]:  # echo干嘛用的？？？
 			self.echo_server = SenderServer.EchoServer(self)
 			self.echo_thread = Thread(name="echo server", target=self.echo_server.start)
 			self.echo_thread.start()
@@ -57,7 +58,7 @@ class SenderServer(object):
 		self.queries = self.conn.recv()
 		self.formats = {}
 		for query in self.queries:
-			self.formats[query.qid] = query.qconf["is_hash"]
+			self.formats[query.qid] = query.qconf["is_hash"] # is_hash: key是否经过hash.
 		
 		# contains all hashed keys
 		self.hash_dict = {}
@@ -71,39 +72,58 @@ class SenderServer(object):
 		assert (self.conn.recv() == "start ack")
 		
 		self.start_time = datetime.datetime.now()
-	
-	def send(self, p, qid):
-		key, val = p
-		is_hash = self.formats[qid]
-		if is_hash:
-			hash_key = hash(key)
-			self.hash_dict[hash_key] = key
-			key = hex(hash_key)
+	# the old send 
+	# def send(self, p, qid):
+	# 	key, val = p
+	# 	is_hash = self.formats[qid]
+	# 	if is_hash:
+	# 		hash_key = hash(key)
+	# 		self.hash_dict[hash_key] = key
+	# 		key = hex(hash_key)
 			
-		key_len = len(key)
-		if key_len & 3:
-			key_suf = 4 - (key_len & 3)
-			key = key + '_' * key_suf
-			key_len += key_suf
-		val_len = 4
+	# 	key_len = len(key)
+	# 	if key_len & 3:
+	# 		key_suf = 4 - (key_len & 3)
+	# 		key = key + '_' * key_suf
+	# 		key_len += key_suf
+	# 	val_len = 4
 
-		length = 4 + key_len + val_len
-		data = pack("!H", qid)
-		data += pack("!H", length)
-		data += pack("!H", key_len)
-		data += pack("!H", val_len)
-		data += pack(str(key_len) + "s", bytes(key, encoding="ASCII"))
-		data += pack("!I", val)
+	# 	length = 4 + key_len + val_len
+	# 	data = pack("!H", qid)
+	# 	data += pack("!H", length)
+	# 	data += pack("!H", key_len)
+	# 	data += pack("!H", val_len)
+	# 	data += pack(str(key_len) + "s", bytes(key, encoding="ASCII"))
+	# 	data += pack("!I", val)
 
-		packet = Ether() / IP(src=self.conf["src_addr"], dst=self.conf["dst_addr"]) / UDP(sport=self.conf["src_port"], dport=self.conf["dst_port"]) / data
+	# 	packet = Ether() / IP(src=self.conf["src_addr"], dst=self.conf["dst_addr"]) / UDP(sport=self.conf["src_port"], dport=self.conf["dst_port"]) / data
 		
-		if self.conf["to_file"]:
-			pass
-		sendp(packet, iface=self.conf["send_iface"], verbose=0)
+	# 	if self.conf["to_file"]:
+	# 		pass
+	# 	sendp(packet, iface=self.conf["send_iface"], verbose=0)
 
-		self.send_bytes += len(packet) 
-		self.send_cnt += 1
-	
+	# 	self.send_bytes += len(packet) 
+	# 	self.send_cnt += 1
+
+	def send(self, appName):
+		import ctypes
+
+		libPath = './speed_test/build/lib.so'
+
+		# 1. open the shared library
+		lib = ctypes.CDLL(libPath)
+
+		# 2. tell Python the argument and result types of function mysum
+		# ctypes.c_char_p is char*.
+		lib.sender.restype = ctypes.c_longlong
+		lib.sender.argtypes = [ctypes.c_char_p, ctypes.c_uint64, ctypes.c_uint32]
+		
+		# 3. call function mysum
+		array_sum = lib.mysum(ctypes.c_char_p(appName), array)
+
+		print('sum of array: {}'.format(array_sum))
+
+
 	def finish(self):
 		print("=== finish ===")
 		if self.conf["echo"]:
@@ -117,7 +137,8 @@ class SenderServer(object):
 		else:
 			# this is only the time that last message is sent
 			self.end_time = datetime.datetime.now()
-
+		
+		# compute the throughput.
 		t = self.end_time - self.start_time
 		t = t.seconds + t.microseconds / 1000 / 1000
 		self.conn.send(("finish", (t, self.send_cnt, self.send_bytes)))

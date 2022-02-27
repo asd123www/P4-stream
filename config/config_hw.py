@@ -27,6 +27,7 @@ em_conf = {
 		"echo_port": 2033,
 	}
 
+# assume one switch now, but what about one big switch?
 p4_conf = {
 		"hw": True,
 		"p4_path": os.path.join(os.getcwd(), "p4"),

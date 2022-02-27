@@ -65,6 +65,7 @@ class Monitor(object):
 				break
 
 	def poll(self):
+		# 轮询sender返回的信息, 如果任务结束则结束.
 		if self.sd_client.poll(1):
 			opt, arg = self.sd_client.recv()
 			if opt == "start":
@@ -96,4 +97,3 @@ if __name__ == "__main__":
 	from config.config_hw import conf
 
 	monitor = Monitor(conf, [])
-

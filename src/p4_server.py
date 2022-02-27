@@ -71,7 +71,7 @@ if __name__ == "__main__":
 	print("listening, waiting for monitor")
 	conn = listener.accept()
 	try:
-		p4_code, sh_code = conn.recv()
+		p4_code, sh_code = conn.recv()  # receive the code from monitor.
 		if debug:
 			with open(os.path.join(p4_conf["p4_path"], "simple_l3_zcq","simple_l3_zcq.p4")) as f:
 				p4_code = f.read()

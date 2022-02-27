@@ -508,7 +508,7 @@ packet_data_t* generate_packet() {
     return pkt;
 }
 
-int main(int argc,char** argv) {
+int mainUDP(int argc,char** argv) {
     dpdk_init("11111", 0);
 
     cqs_core_affinitize_dpdk(0);
