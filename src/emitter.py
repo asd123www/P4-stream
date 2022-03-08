@@ -11,7 +11,7 @@ from src.spark_driver import SparkDriver
 from src.utils import *
 
 class Emitter(object):
-
+	# queries has functions: spark_build, emitter_func
 	def __init__(self, em_conf, queries):
 		self.conf = em_conf
 		self.queries = queries

@@ -1,5 +1,12 @@
 from src.packetstream import PacketStream
 
+'''
+Spark code generator.
+But with the sematic problem, now only one key in default.
+Futher changes needed to cope with Switch generating multiple (k, v) pairs -> change Spark generator.
+'''
+
+
 def getint(s):
 	return int(s.split('w')[-1])
 

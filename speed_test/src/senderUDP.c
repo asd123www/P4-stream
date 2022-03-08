@@ -39,7 +39,10 @@
 /* default port_conf */
 
 
+// wzz: packet length.
 const int MaxPacket = 1000;
+const int wordLength = 100;
+
 
 const int num_devices_attached = 1;
 const int devices_attached[32] = {1};
@@ -473,11 +476,13 @@ uint32_t src_ip, dst_ip;
 uint16_t src_port, dst_port;
 uint8_t dst_mac[6];
 
+char keys[wordLength];
+packet_data_t *pkt[MaxPacket];
+
 
 packet_data_t* generate_packet(uint32_t payload_length, char *buf) {
     packet_data_t* pkt = rte_malloc(NULL, sizeof(packet_data_t), 64);
     pkt->data = pkt->mbuf; // 直接把payload放在mbuf偏移 ether+ipv4+udp 的位置即可.
-    // 需要晚上问一下郭俊逸.
     pkt->length = payload_length + sizeof(ethernet_header_t) + sizeof(ipv4_header_t) + sizeof(udp_header_t);
     pkt->header_tail = pkt->headers;
     packet_header_t* ethh = pkt->header_tail ++;
@@ -489,6 +494,7 @@ packet_data_t* generate_packet(uint32_t payload_length, char *buf) {
     ipv4h->length = sizeof(ipv4_header_t);
     udph->data = pkt->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t);
     udph->length = sizeof(udp_header_t);
+    // memcpy(pkt->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t) + sizeof(udp_header_t), buf, payload_length)
 
     ethernet_header_t* eth = ethh->data;
     ipv4_header_t* ipv4 = ipv4h->data;
@@ -513,8 +519,31 @@ packet_data_t* generate_packet(uint32_t payload_length, char *buf) {
 }
 
 
+void packetFormat(char *key, int value, int QID) {
+
+    if (is_hash) { // wait to change.
+        // hash_key = hash(key)
+        // self.hash_dict[hash_key] = key
+        // key = hex(hash_key)
+    }
+    int key_len = strlen(key + 8); // offset = 8.
+    int val_len = 4; // fixed, hard to increase...
+    while (key_len & 3) key[8 + (key_len++)] = '_';  // pad the key to 4*k with '_'.
+    int len = 4 + key_len + val_len;
+
+    // prepare the content.
+    *((unsigned short *) key) = QID;
+    *((unsigned short *) key + 1) = len;
+    *((unsigned short *) key + 2) = key_len;
+    *((unsigned short *) key + 3) = val_len;
+    *((unsigned int *) (key + 8 + key_len)) = value;
+
+    return;
+}
+
+
 // test the max speed, the switch is able to handle, so best effort.
-void sender(char *appName, u_int32_t burst_size) {
+void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
     dpdk_init("11111", 0);
 
     cqs_core_affinitize_dpdk(0);
@@ -529,6 +558,7 @@ void sender(char *appName, u_int32_t burst_size) {
     printf("initialized\n");
 
     // in the parameter.
+    // 先整个固定的, 跑通了改一下参数传递.
     src_ip = s2ipv4("10.0.12.9");
     dst_ip = s2ipv4("10.0.12.10");
     src_port = 45678;
@@ -536,27 +566,15 @@ void sender(char *appName, u_int32_t burst_size) {
     s2macaddr((char*)dst_mac, "3c:fd:fe:bb:ca:81");
 
 
-    const int wordLength = 100;
-    char keys[wordLength];
-    packet_data_t *pkt[MaxPacket];
     
     int n = 0;
-    int QID = 0;
-
-    FILE *file = freopen("/home/bfsde/wzz-p4-stream/p4-stream/data/wordCount.txt", "r", stdin);
+    // the file name should be paramiterized.
+    FILE *file = freopen("../../data/wordCount.txt", "r", stdin);
     scanf("%d", &QID);
-    for (int i = 0, value; scanf("%s%d", keys, &value) == 2; ++i) {
+    // the format is fixed so 'keys + 8' means 'offset = 8'.
+    for (int i = 0, value; scanf("%s%d", keys + 8, &value) == 2; ++i) {
         ++n; // count the # of different packets.
-        int len = strlen(keys);
-
-        // -------------------------------------------------
-
-        unsigned char a[wordLength]; 
-        // Wait to implement: process the key-value pair.
-        // memcpy(a, keys[i], len);
-
-        // -------------------------------------------------
-        
+        packetFormat(keys, value, QID);
         pkt[i] = generate_packet(strlen(a), a);
     }
     fclose(file);
@@ -569,10 +587,11 @@ void sender(char *appName, u_int32_t burst_size) {
             ipv4->id = ntohs(ip_id ++);
             rte_memcpy(ptr, pkt[i]->data, 64);
             accum += pkt[i] -> length;
-        }
-        if (accum > burst_size) {
-            dpdk_module_func.send_pkts(up_handle);
-            accum = 0;
+
+            if (accum > burst_size) {
+                dpdk_module_func.send_pkts(up_handle);
+                accum = 0;
+            }
         }
     }
 

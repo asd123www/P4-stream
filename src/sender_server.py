@@ -38,8 +38,6 @@ class SenderServer(object):
 			self._stop_event.set()
 
 	def __init__(self, conf):
-		return 
-
 		self.conf = conf
 		self.listener = Listener((self.conf["server_addr"], self.conf["server_port"]))
 		print("listening, waiting for monitor")
@@ -65,8 +63,6 @@ class SenderServer(object):
 		self.conn.send("ready")
 
 	def start(self):
-		return 
-
 		print("=== start ===")
 		self.send_cnt = 0
 		self.send_bytes = 0
@@ -74,38 +70,6 @@ class SenderServer(object):
 		assert (self.conn.recv() == "start ack")
 		
 		self.start_time = datetime.datetime.now()
-	# the old send 
-	# def send(self, p, qid):
-	# 	key, val = p
-	# 	is_hash = self.formats[qid]
-	# 	if is_hash:
-	# 		hash_key = hash(key)
-	# 		self.hash_dict[hash_key] = key
-	# 		key = hex(hash_key)
-			
-	# 	key_len = len(key)
-	# 	if key_len & 3:
-	# 		key_suf = 4 - (key_len & 3)
-	# 		key = key + '_' * key_suf
-	# 		key_len += key_suf
-	# 	val_len = 4
-
-	# 	length = 4 + key_len + val_len
-	# 	data = pack("!H", qid)
-	# 	data += pack("!H", length)
-	# 	data += pack("!H", key_len)
-	# 	data += pack("!H", val_len)
-	# 	data += pack(str(key_len) + "s", bytes(key, encoding="ASCII"))
-	# 	data += pack("!I", val)
-
-	# 	packet = Ether() / IP(src=self.conf["src_addr"], dst=self.conf["dst_addr"]) / UDP(sport=self.conf["src_port"], dport=self.conf["dst_port"]) / data
-		
-	# 	if self.conf["to_file"]:
-	# 		pass
-	# 	sendp(packet, iface=self.conf["send_iface"], verbose=0)
-
-	# 	self.send_bytes += len(packet) 
-	# 	self.send_cnt += 1
 
 	def send(self, appName):
 		import ctypes

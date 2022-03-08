@@ -11,6 +11,8 @@ import traceback
 from src.emitter import Emitter
 from src.utils import *
 
+# emitter端调用, 处理switch发出的包格式, 转为Spark格式后发给Spark做处理.
+
 class Emitter_Server(object):
 
 	class Query:
@@ -34,13 +36,13 @@ class Emitter_Server(object):
 		self.emitter = Emitter(self.conf, self.queries)
 
 	def spark_build(self, spark_code):
-		def func(data):
+		def func(data): # 处理data的过程会不会成为瓶颈?
 			def kv_split(x):
 				kv = x[4:].split(' ')
 				return kv[0], int(kv[1])
 
 			kvs = data.map(kv_split)
-			return eval(spark_code)
+			return eval(spark_code) # run the Spark code.
 
 		return func
 
@@ -88,11 +90,12 @@ if __name__ == "__main__":
 		formats = conn.recv()
 
 		em_server = Emitter_Server(em_conf, formats)
-		em_server_thread = Thread(name="em_server", target=em_server.start)
+		em_server_thread = Thread(name="em_server", target=em_server.start) # run the emitter.
 		em_server_thread.start()
 		conn.send("ready")
 		print("=== ready ===")
 
+		# the control message is low-perform-demand, so just keep the python. 
 		while True:
 			msg = conn.recv()
 			if msg == "stop":

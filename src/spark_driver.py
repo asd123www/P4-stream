@@ -20,7 +20,7 @@ class SparkDriver(object):
 		self.ssc = StreamingContext(self.sc, 1)
 		self.sc.setLogLevel('OFF')
 		self.input = self.ssc.socketTextStream(self.conf["spark_addr"], self.conf["spark_port"])
-		self.output = self.query.spark_build(self.input)
+		self.output = self.query.spark_build(self.input) # spark_build in emitter_server.py
 
 		if self.conf["echo"]:
 			echo_conn = Client((self.conf["echo_addr"], self.conf["echo_port"]))
