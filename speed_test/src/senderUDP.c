@@ -40,8 +40,8 @@
 
 
 // wzz: packet length.
-const int MaxPacket = 1000;
-const int wordLength = 100;
+#define MaxPacket 1000
+#define wordLength 100
 
 
 const int num_devices_attached = 1;
@@ -520,7 +520,9 @@ packet_data_t* generate_packet(uint32_t payload_length, char *buf) {
 
 
 void packetFormat(char *key, int value, int QID) {
+    int is_hash = 0;
 
+    
     if (is_hash) { // wait to change.
         // hash_key = hash(key)
         // self.hash_dict[hash_key] = key
@@ -570,12 +572,11 @@ void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
     int n = 0;
     // the file name should be paramiterized.
     FILE *file = freopen("../../data/wordCount.txt", "r", stdin);
-    scanf("%d", &QID);
     // the format is fixed so 'keys + 8' means 'offset = 8'.
     for (int i = 0, value; scanf("%s%d", keys + 8, &value) == 2; ++i) {
         ++n; // count the # of different packets.
         packetFormat(keys, value, QID);
-        pkt[i] = generate_packet(strlen(a), a);
+        pkt[i] = generate_packet(strlen(keys), keys);
     }
     fclose(file);
 

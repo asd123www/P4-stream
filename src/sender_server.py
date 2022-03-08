@@ -71,7 +71,7 @@ class SenderServer(object):
 		
 		self.start_time = datetime.datetime.now()
 
-	def send(self, appName):
+	def send(self, appName, QID):
 		import ctypes
 
 		libPath = './speed_test/build/liblib.so'
@@ -85,7 +85,7 @@ class SenderServer(object):
 		lib.sender.argtypes = [ctypes.c_wchar_p, ctypes.c_uint64, ctypes.c_uint32]
 		
 		# 3. call function mysum
-		lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint64(100000000), ctypes.c_uint32(1000))
+		lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint64(100000000), ctypes.c_uint32(QID))
 		
 		print("Finish sending")
 
