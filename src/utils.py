@@ -57,7 +57,7 @@ def get_logger(name, loglevel):
 
     return logger
 
-def _async_raise(tid, exctype):
+def async_raise(tid, exctype):
     """Raises an exception in the threads with id tid"""
     if not inspect.isclass(exctype):
         raise TypeError("Only types can be raised (not instances)")

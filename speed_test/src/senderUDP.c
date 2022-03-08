@@ -561,10 +561,10 @@ void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
 
     // in the parameter.
     // 先整个固定的, 跑通了改一下参数传递.
-    src_ip = s2ipv4("10.0.12.9");
-    dst_ip = s2ipv4("10.0.12.10");
-    src_port = 45678;
-    dst_port = 23233;
+    src_ip = s2ipv4("10.1.100.1");
+    dst_ip = s2ipv4("10.1.100.2");
+    src_port = 1111;
+    dst_port = 2222;
     s2macaddr((char*)dst_mac, "3c:fd:fe:bb:ca:81");
 
 

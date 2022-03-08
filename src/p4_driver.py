@@ -125,7 +125,7 @@ class P4Driver(object):
 		time.sleep(10)
 
 	def exit(self):
-		_async_raise(self.p4_driver_thread.ident, SystemExit)
+		async_raise(self.p4_driver_thread.ident, SystemExit)
 
 
 if __name__ == "__main__":

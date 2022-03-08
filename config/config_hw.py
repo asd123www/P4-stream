@@ -34,7 +34,6 @@ p4_conf = {
 		"server_addr": "10.16.0.18", # bf2
 		"server_port": 4010,
 		"tmp_name": "tmp",
-
 	}
 
 conf = {
