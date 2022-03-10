@@ -74,17 +74,13 @@ class SenderServer(object):
 	def send(self, appName, QID):
 		import ctypes
 
-		libPath = './speed_test/build/liblib.so'
+		libPath = './speed_test/build/libSender.so'
 
-		# 1. open the shared library
 		lib = ctypes.CDLL(libPath)
 
-		# 2. tell Python the argument and result types of function mysum
-		# ctypes.c_char_p is char*.
 		lib.sender.restype = ctypes.c_void_p
 		lib.sender.argtypes = [ctypes.c_wchar_p, ctypes.c_uint64, ctypes.c_uint32]
-		
-		# 3. call function mysum
+
 		lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint64(100000000), ctypes.c_uint32(QID))
 		
 		print("Finish sending")

@@ -25,16 +25,23 @@ class Emitter_Server(object):
 		self.queries = []
 		self.em_cnt = 0
 
+		'''
+		应该之后还得加上query的信息.
+		因为我们需要Stream processing端自动生成的代码.
+		但是还是先写完框架在说.
+
+		2022.3.10: 我们的架构退化成了host端手动的代码, 等融合AF_stream的时候在自动生成.
 		for format in formats:
 			query = Emitter_Server.Query()
 			query.qid = format["qid"]
 			query.qname = format["qname"]
 			query.spark_build = self.spark_build(format["spark_code"])
 			query.emitter = self.emitter_func(format["em_format"])
-			self.queries.append(query)
+			self.queries.append(query)'''
 		
 		self.emitter = Emitter(self.conf, self.queries)
-
+	
+	'''
 	def spark_build(self, spark_code):
 		def func(data): # 处理data的过程会不会成为瓶颈?
 			def kv_split(x):
@@ -62,8 +69,8 @@ class Emitter_Server(object):
 			val = unpack("!I", data[4+key_len:4+key_len+val_len])[0]
 			return key+' '+str(val)+'\n'
 
-		return func
-
+		return func'''
+	
 	def start(self):
 		self.emitter.start()
 	
@@ -82,6 +89,7 @@ class Emitter_Server(object):
 if __name__ == "__main__":
 	from config.config_hw import em_conf
 
+	# control message exchange with Monitor, performance dull.
 	listener = Listener((em_conf["server_addr"], em_conf["server_port"]))
 	print("listening, waiting for monitor")
 	conn = listener.accept()

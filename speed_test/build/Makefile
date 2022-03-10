@@ -143,24 +143,61 @@ udp/fast:
 .PHONY : udp/fast
 
 #=============================================================================
-# Target rules for targets named lib
+# Target rules for targets named receiver
 
 # Build rule for target.
-lib: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 lib
-.PHONY : lib
+receiver: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 receiver
+.PHONY : receiver
 
 # fast build rule for target.
-lib/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib.dir/build.make CMakeFiles/lib.dir/build
-.PHONY : lib/fast
+receiver/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/receiver.dir/build.make CMakeFiles/receiver.dir/build
+.PHONY : receiver/fast
+
+#=============================================================================
+# Target rules for targets named sender
+
+# Build rule for target.
+sender: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 sender
+.PHONY : sender
+
+# fast build rule for target.
+sender/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sender.dir/build.make CMakeFiles/sender.dir/build
+.PHONY : sender/fast
+
+src/receiverUDP.o: src/receiverUDP.c.o
+.PHONY : src/receiverUDP.o
+
+# target to build an object file
+src/receiverUDP.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/receiver.dir/build.make CMakeFiles/receiver.dir/src/receiverUDP.c.o
+.PHONY : src/receiverUDP.c.o
+
+src/receiverUDP.i: src/receiverUDP.c.i
+.PHONY : src/receiverUDP.i
+
+# target to preprocess a source file
+src/receiverUDP.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/receiver.dir/build.make CMakeFiles/receiver.dir/src/receiverUDP.c.i
+.PHONY : src/receiverUDP.c.i
+
+src/receiverUDP.s: src/receiverUDP.c.s
+.PHONY : src/receiverUDP.s
+
+# target to generate assembly for a file
+src/receiverUDP.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/receiver.dir/build.make CMakeFiles/receiver.dir/src/receiverUDP.c.s
+.PHONY : src/receiverUDP.c.s
 
 src/senderUDP.o: src/senderUDP.c.o
 .PHONY : src/senderUDP.o
 
 # target to build an object file
 src/senderUDP.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib.dir/build.make CMakeFiles/lib.dir/src/senderUDP.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sender.dir/build.make CMakeFiles/sender.dir/src/senderUDP.c.o
 .PHONY : src/senderUDP.c.o
 
 src/senderUDP.i: src/senderUDP.c.i
@@ -168,7 +205,7 @@ src/senderUDP.i: src/senderUDP.c.i
 
 # target to preprocess a source file
 src/senderUDP.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib.dir/build.make CMakeFiles/lib.dir/src/senderUDP.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sender.dir/build.make CMakeFiles/sender.dir/src/senderUDP.c.i
 .PHONY : src/senderUDP.c.i
 
 src/senderUDP.s: src/senderUDP.c.s
@@ -176,7 +213,7 @@ src/senderUDP.s: src/senderUDP.c.s
 
 # target to generate assembly for a file
 src/senderUDP.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/lib.dir/build.make CMakeFiles/lib.dir/src/senderUDP.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sender.dir/build.make CMakeFiles/sender.dir/src/senderUDP.c.s
 .PHONY : src/senderUDP.c.s
 
 src/tcp.o: src/tcp.c.o
@@ -235,9 +272,13 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... lib"
+	@echo "... receiver"
+	@echo "... sender"
 	@echo "... tcp"
 	@echo "... udp"
+	@echo "... src/receiverUDP.o"
+	@echo "... src/receiverUDP.i"
+	@echo "... src/receiverUDP.s"
 	@echo "... src/senderUDP.o"
 	@echo "... src/senderUDP.i"
 	@echo "... src/senderUDP.s"

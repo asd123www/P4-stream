@@ -53,5 +53,6 @@ set(CMAKE_MAKEFILE_PRODUCTS
 set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/tcp.dir/DependInfo.cmake"
   "CMakeFiles/udp.dir/DependInfo.cmake"
-  "CMakeFiles/lib.dir/DependInfo.cmake"
+  "CMakeFiles/receiver.dir/DependInfo.cmake"
+  "CMakeFiles/sender.dir/DependInfo.cmake"
   )
