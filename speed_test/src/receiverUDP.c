@@ -476,10 +476,6 @@ uint32_t src_ip, dst_ip;
 uint16_t src_port, dst_port;
 uint8_t dst_mac[6];
 
-char keys[wordLength];
-packet_data_t *pkt[MaxPacket];
-
-
 packet_data_t* generate_packet(uint32_t payload_length, char *buf) {
     packet_data_t* pkt = rte_malloc(NULL, sizeof(packet_data_t), 64);
     pkt->data = pkt->mbuf; // 直接把payload放在mbuf偏移 ether+ipv4+udp 的位置即可.
@@ -546,10 +542,6 @@ void packetFormat(char *key, int value, int QID) {
 
 // test the max speed, the switch is able to handle, so best effort.
 void receiver(int *signal) {
-    int QID = 0;
-    int burst_size = 0;
-    
-    return;
 
     dpdk_init("11111", 0);
 
@@ -572,33 +564,21 @@ void receiver(int *signal) {
     dst_port = 2222;
     s2macaddr((char*)dst_mac, "3c:fd:fe:bb:ca:81");
 
-    
-    int n = 0;
-    // the file name should be paramiterized.
-    FILE *file = freopen("../../data/wordCount.txt", "r", stdin);
-    // the format is fixed so 'keys + 8' means 'offset = 8'.
-    for (int i = 0, value; scanf("%s%d", keys + 8, &value) == 2; ++i) {
-        ++n; // count the # of different packets.
-        packetFormat(keys, value, QID);
-        pkt[i] = generate_packet(strlen(keys), keys);
-    }
-    fclose(file);
+    int payload_length = 0;
+    char *buf[1000+5];
 
-    uint16_t ip_id = 0;
-    for (uint32_t accum = 0;;) {
-        for (int i = 0; i < n; ++i) {
-            ipv4_header_t* ipv4 = pkt[i]->data + sizeof(ethernet_header_t);
-            void* ptr = dpdk_module_func.get_wptr(up_handle, pkt[i], pkt[i]->length);
-            ipv4->id = ntohs(ip_id ++);
-            rte_memcpy(ptr, pkt[i]->data, 64);
-            accum += pkt[i] -> length;
-
-            if (accum > burst_size) {
-                dpdk_module_func.send_pkts(up_handle);
-                accum = 0;
-            }
+    packet_data_t* data = generate_packet(payload_length, buf);
+    while(1) { // sniffer the port.
+        int recv_num = dpdk_module_func.recv_pkts(down_handle);
+        for(int i = 0; i < recv_num; i ++) {
+            dpdk_module_func.get_rptr(down_handle, data, i);
+            // 这里需要check一下是不是我们的包?
+            udp_header_t* data_udp = data->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t);
+            // 在payload里面需要解析出(key, value), 然后写自定义的stream processing处理程序.
+            unsigned char* ptr = data->data - RTE_PKTMBUF_HEADROOM - sizeof(struct rte_mbuf);
+            rte_pktmbuf_free((struct rte_mbuf*)ptr);
         }
     }
 
-    for (int i = 0; i < n; ++i) rte_free(pkt[i]);
+    return;
 }
