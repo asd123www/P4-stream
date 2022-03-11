@@ -11,6 +11,7 @@
         "tuple": "c",
         "type_traits": "c",
         "utility": "c",
-        "io_module.h": "c"
+        "io_module.h": "c",
+        "rte_ethdev.h": "c"
     }
 }
