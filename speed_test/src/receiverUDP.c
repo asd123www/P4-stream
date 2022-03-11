@@ -42,10 +42,11 @@
 // wzz: packet length.
 #define MaxPacket 1000
 #define wordLength 100
+#define largePrime 23333
 
 
 const int num_devices_attached = 1;
-const int devices_attached[32] = {1};
+const int devices_attached[32] = {0x81};
 uint8_t devices_hwaddr[32][6];
 
 static uint8_t rss_key[] = {
@@ -515,28 +516,58 @@ packet_data_t* generate_packet(uint32_t payload_length, char *buf) {
 }
 
 
-void packetFormat(char *key, int value, int QID) {
-    int is_hash = 0;
 
-    
-    if (is_hash) { // wait to change.
-        // hash_key = hash(key)
-        // self.hash_dict[hash_key] = key
-        // key = hex(hash_key)
-    }
-    int key_len = strlen(key + 8); // offset = 8.
-    int val_len = 4; // fixed, hard to increase...
-    while (key_len & 3) key[8 + (key_len++)] = '_';  // pad the key to 4*k with '_'.
-    int len = 4 + key_len + val_len;
+typedef struct kvPair{
+    int QID;
+    u_int32_t key;
+    int value;
+}kvPair;
 
-    // prepare the content.
-    *((unsigned short *) key) = QID;
-    *((unsigned short *) key + 1) = len;
-    *((unsigned short *) key + 2) = key_len;
-    *((unsigned short *) key + 3) = val_len;
-    *((unsigned int *) (key + 8 + key_len)) = value;
+typedef struct hashTable {
+    u_int32_t keys[largePrime];
+    int values[largePrime];
+
+    int* (*query) (u_int32_t* keys, int *values, u_int32_t key);
+}hashTable;
+
+int *hashQueryPosition(u_int32_t* keys, int *values, u_int32_t key) {
+    int i = key%largePrime;
+    for(; keys[i] && keys[i] != key; ++i) if (i + 1 == largePrime) i = -1;
+    keys[i] = key;
+    return values + i;
+}
+
+u_int32_t hash(char *buf, u_int32_t len) {
+    u_int32_t ans = 0;
+    for(u_int32_t i = 0; i < len; ++i) ans = ans * 1000000007 + buf[i];
+    return ans;
+}
+// how to use?
+// hashTable a;
+// a.query = hashQueryPosition;
+// uint32_t key = hash(s, strlen(s));
+// a.query(a.keys, a.values, key)
+
+
+// deparse the packet.
+void packetFormat(kvPair *p, char *buf) {
+    int QID = *((unsigned short *) buf);
+    int len = *((unsigned short *) buf + 1);
+    int key_len = *((unsigned short *) buf + 2);
+    int val_len = *((unsigned short *) buf + 3);
+    u_int32_t key = hash(buf + 8, key_len);
+    int value = *((unsigned int *) (buf + 8 + key_len));
+
+    p -> QID = QID;
+    p -> key = key;
+    p -> value = value;
 
     return;
+}
+
+
+void WordCount(kvPair *p) {
+
 }
 
 
@@ -567,18 +598,31 @@ void receiver(int *signal) {
     int payload_length = 0;
     char *buf[1000+5];
 
+    kvPair p;
     packet_data_t* data = generate_packet(payload_length, buf);
     while(1) { // sniffer the port.
         int recv_num = dpdk_module_func.recv_pkts(down_handle);
         for(int i = 0; i < recv_num; i ++) {
             dpdk_module_func.get_rptr(down_handle, data, i);
-            // 这里需要check一下是不是我们的包?
+            ipv4_header_t* data_ipv4 = data->data + sizeof(ethernet_header_t);
             udp_header_t* data_udp = data->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t);
+            // drop the packet that is not in UDP. 
+            if (data_ipv4 -> proto != 17) continue;
+
             // 在payload里面需要解析出(key, value), 然后写自定义的stream processing处理程序.
+            packetFormat(&p, data->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t) + sizeof(udp_header_t));
+            WordCount(&p);
+
             unsigned char* ptr = data->data - RTE_PKTMBUF_HEADROOM - sizeof(struct rte_mbuf);
             rte_pktmbuf_free((struct rte_mbuf*)ptr);
         }
+
+        if (*signal) break;
     }
+
+    // 对于wordCount来说, 用hash_table来做.
+    // 先不考虑清空的情况.
+    // 可预见的结果是快了至少k倍, 因为包的数量减少了k倍.
 
     return;
 }

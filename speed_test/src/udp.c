@@ -39,7 +39,7 @@
 /* default port_conf */
 
 const int num_devices_attached = 1;
-const int devices_attached[32] = {1};
+const int devices_attached[32] = {0x81};  // ethtool -i enp129s0f1 查询pcie的bus端口号.
 uint8_t devices_hwaddr[32][6];
 
 static uint8_t rss_key[] = {
@@ -522,11 +522,17 @@ int main(int argc,char** argv) {
 
     printf("initialized\n");
 
-    src_ip = s2ipv4("10.0.12.9");
-    dst_ip = s2ipv4("10.0.12.10");
-    src_port = 45678;
-    dst_port = 23233;
-    s2macaddr((char*)dst_mac, "08:c0:eb:24:7a:db");
+
+    src_ip = s2ipv4("10.1.100.1");
+    dst_ip = s2ipv4("10.1.100.2");
+    src_port = 1111;
+    dst_port = 2222;
+    s2macaddr((char*)dst_mac, "3c:fd:fe:bb:ca:81");
+    // src_ip = s2ipv4("10.0.12.9");
+    // dst_ip = s2ipv4("10.0.12.10");
+    // src_port = 45678;
+    // dst_port = 23233;
+    // s2macaddr((char*)dst_mac, "08:c0:eb:24:7a:db");
 
     sscanf(argv[1], "%d", &payload_length);
     sscanf(argv[2], "%ld", &bandwidth);
