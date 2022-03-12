@@ -496,7 +496,7 @@ packet_data_t* generate_packet(uint32_t payload_length, char *buf) {
     ipv4h->length = sizeof(ipv4_header_t);
     udph->data = pkt->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t);
     udph->length = sizeof(udp_header_t);
-    // memcpy(pkt->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t) + sizeof(udp_header_t), buf, payload_length)
+    memcpy(pkt->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t) + sizeof(udp_header_t), buf, payload_length);
 
     ethernet_header_t* eth = ethh->data;
     ipv4_header_t* ipv4 = ipv4h->data;
@@ -521,7 +521,7 @@ packet_data_t* generate_packet(uint32_t payload_length, char *buf) {
 }
 
 
-void packetFormat(char *key, int value, int QID) {
+int packetFormat(char *key, int value, int QID) {
     int is_hash = 0;
 
     
@@ -542,7 +542,7 @@ void packetFormat(char *key, int value, int QID) {
     *((unsigned short *) key + 3) = val_len;
     *((unsigned int *) (key + 8 + key_len)) = value;
 
-    return;
+    return key_len + 12;
 }
 
 
@@ -564,6 +564,7 @@ void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
     // in the parameter.
     // 先整个固定的, 跑通了改一下参数传递.
     src_ip = s2ipv4("10.1.100.1");
+    // dst_ip = s2ipv4("10.1.100.2");
     dst_ip = s2ipv4("10.1.100.2");
     src_port = 1111;
     dst_port = 2222;
@@ -577,11 +578,16 @@ void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
     // the format is fixed so 'keys + 8' means 'offset = 8'.
     for (int i = 0, value; scanf("%s%d", keys + 8, &value) == 2; ++i) {
         ++n; // count the # of different packets.
-        packetFormat(keys, value, QID);
-        pkt[i] = generate_packet(strlen(keys), keys);
+        int len = packetFormat(keys, value, QID);
+        pkt[i] = generate_packet(len, keys);
     }
     // fclose(file);
 
+
+    for (int i = 0; i < n; ++i) {
+        printf("packet %d: %d\n", i, pkt[i] -> length);
+    }
+    puts("");
 
     int count = 100;
     uint16_t ip_id = 0;
@@ -598,7 +604,7 @@ void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
                 accum = 0;
             }
         }
-
+        
         if (--count == 0) break;
     }
 

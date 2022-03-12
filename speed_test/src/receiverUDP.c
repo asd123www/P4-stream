@@ -471,8 +471,6 @@ void dpdk_init(char *cpumask, uint32_t main_core) {
 
 
 
-// the c code define thread_num.
-uint8_t thread_num;
 uint32_t src_ip, dst_ip;
 uint16_t src_port, dst_port;
 uint8_t dst_mac[6];
