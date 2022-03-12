@@ -584,29 +584,26 @@ void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
     // fclose(file);
 
 
-    for (int i = 0; i < n; ++i) {
-        printf("packet %d: %d\n", i, pkt[i] -> length);
-    }
-    puts("");
-
-    int count = 100;
     uint16_t ip_id = 0;
-    for (uint32_t accum = 0;;) {
+    u_int64_t totalByte = 0;
+    for (uint32_t accum = 0; totalByte < 1000;) {
         for (int i = 0; i < n; ++i) {
             ipv4_header_t* ipv4 = pkt[i]->data + sizeof(ethernet_header_t);
             void* ptr = dpdk_module_func.get_wptr(up_handle, pkt[i], pkt[i]->length);
             ipv4->id = ntohs(ip_id ++);
-            rte_memcpy(ptr, pkt[i]->data, 64);
+            rte_memcpy(ptr, pkt[i]->data, pkt[i] -> length);
             accum += pkt[i] -> length;
 
             if (accum > burst_size) {
                 dpdk_module_func.send_pkts(up_handle);
+                totalByte += accum;
                 accum = 0;
             }
         }
-        
-        if (--count == 0) break;
     }
 
     for (int i = 0; i < n; ++i) rte_free(pkt[i]);
+
+    return;
+    //return totalByte;
 }
