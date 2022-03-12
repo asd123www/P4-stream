@@ -41,8 +41,7 @@
 
 // wzz: packet length.
 #define MaxPacket 1000
-#define wordLength 100
-
+#define wordLength 1000
 
 const int num_devices_attached = 1;
 const int devices_attached[32] = {0};  // ethtool -i enp129s0f1 查询pcie的bus端口号.
@@ -154,8 +153,8 @@ int dpdk_load_module(void) {
         dpdk_info.port_conf[portid].txmode.offloads &= dpdk_info.dev_info[portid].tx_offload_capa;
         // rte_eth_dev_set_ptypes(portid, RTE_PTYPE_UNKNOWN, NULL, 0);
 
-        dpdk_info.nb_rxd[portid] = RTE_TEST_RX_DESC_DEFAULT;
-        dpdk_info.nb_txd[portid] = RTE_TEST_TX_DESC_DEFAULT;
+        dpdk_info.nb_rxd[portid] = RTE_TEST_RX_DESC_DEFAULT >> 3;
+        dpdk_info.nb_txd[portid] = RTE_TEST_TX_DESC_DEFAULT >> 3;
         // dpdk_info.nb_txd[portid] = RTE_TEST_TX_DESC_DEFAULT;
         rte_eth_dev_adjust_nb_rx_tx_desc(portid, &dpdk_info.nb_rxd[portid], &dpdk_info.nb_txd[portid]);
         dpdk_info.port_conf[portid].rx_adv_conf.rss_conf.rss_hf &= dpdk_info.dev_info[portid].flow_type_rss_offloads;
@@ -232,6 +231,8 @@ void* dpdk_init_handle_up(uint16_t nif, uint32_t stack_id) {
     pthread_mutex_lock(&dpdk_info.mutex);
     dpc->portid = portid;
     dpc->txq_id = dpdk_info.idx_txq[portid]++;
+    // printf("TEST: %d\n", dpdk_info.idx_txq[portid]);
+    // printf("\n\nportid:%d\n\n", portid);
 
     struct rte_eth_txconf txq_conf = dpdk_info.dev_info[portid].default_txconf;
     txq_conf.offloads = 0; //dpdk_info.port_conf[portid].txmode.offloads;
@@ -569,17 +570,17 @@ void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
     s2macaddr((char*)dst_mac, "3c:fd:fe:bb:ca:81");
 
 
-    
     int n = 0;
     // the file name should be paramiterized.
-    FILE *file = freopen("../../data/wordCount.txt", "r", stdin);
+    // FILE *file = freopen("../../data/wordCount.txt", "r", stdin);
+    freopen("data/wordCount.txt", "r", stdin);
     // the format is fixed so 'keys + 8' means 'offset = 8'.
     for (int i = 0, value; scanf("%s%d", keys + 8, &value) == 2; ++i) {
         ++n; // count the # of different packets.
         packetFormat(keys, value, QID);
         pkt[i] = generate_packet(strlen(keys), keys);
     }
-    fclose(file);
+    // fclose(file);
 
 
     int count = 100;

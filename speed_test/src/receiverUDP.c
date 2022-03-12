@@ -567,7 +567,7 @@ void packetFormat(kvPair *p, char *buf) {
 
 
 void WordCount(kvPair *p) {
-
+    printf("QID: %d\nkey:%d , value:%d\n\n", p->QID, p->key, p->value);
 }
 
 
