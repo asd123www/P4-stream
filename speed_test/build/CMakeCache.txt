@@ -212,6 +212,12 @@ CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 //pkg-config executable
 PKG_CONFIG_EXECUTABLE:FILEPATH=/usr/bin/pkg-config
 
+//Dependencies for the target
+Receiver_LIB_DEPENDS:STATIC=general;rte_node;general;rte_graph;general;rte_bpf;general;rte_flow_classify;general;rte_pipeline;general;rte_table;general;rte_port;general;rte_fib;general;rte_ipsec;general;rte_vhost;general;rte_stack;general;rte_security;general;rte_sched;general;rte_reorder;general;rte_rib;general;rte_regexdev;general;rte_rawdev;general;rte_pdump;general;rte_power;general;rte_member;general;rte_lpm;general;rte_latencystats;general;rte_kni;general;rte_jobstats;general;rte_ip_frag;general;rte_gso;general;rte_gro;general;rte_eventdev;general;rte_efd;general;rte_distributor;general;rte_cryptodev;general;rte_compressdev;general;rte_cfgfile;general;rte_bitratestats;general;rte_bbdev;general;rte_acl;general;rte_timer;general;rte_hash;general;rte_metrics;general;rte_cmdline;general;rte_pci;general;rte_ethdev;general;rte_meter;general;rte_net;general;rte_mbuf;general;rte_mempool;general;rte_rcu;general;rte_ring;general;rte_eal;general;rte_telemetry;general;rte_kvargs;general;pthread;
+
+//Dependencies for the target
+Sender_LIB_DEPENDS:STATIC=general;rte_node;general;rte_graph;general;rte_bpf;general;rte_flow_classify;general;rte_pipeline;general;rte_table;general;rte_port;general;rte_fib;general;rte_ipsec;general;rte_vhost;general;rte_stack;general;rte_security;general;rte_sched;general;rte_reorder;general;rte_rib;general;rte_regexdev;general;rte_rawdev;general;rte_pdump;general;rte_power;general;rte_member;general;rte_lpm;general;rte_latencystats;general;rte_kni;general;rte_jobstats;general;rte_ip_frag;general;rte_gso;general;rte_gro;general;rte_eventdev;general;rte_efd;general;rte_distributor;general;rte_cryptodev;general;rte_compressdev;general;rte_cfgfile;general;rte_bitratestats;general;rte_bbdev;general;rte_acl;general;rte_timer;general;rte_hash;general;rte_metrics;general;rte_cmdline;general;rte_pci;general;rte_ethdev;general;rte_meter;general;rte_net;general;rte_mbuf;general;rte_mempool;general;rte_rcu;general;rte_ring;general;rte_eal;general;rte_telemetry;general;rte_kvargs;general;pthread;
+
 //Use debug mode.
 USE_DEBUG:BOOL=NO
 

@@ -65,8 +65,8 @@ CMAKE_BINARY_DIR = /home/bfsde/wzz-p4-stream/p4-stream/speed_test/build
 # The main recursive "all" target.
 all: CMakeFiles/tcp.dir/all
 all: CMakeFiles/udp.dir/all
-all: CMakeFiles/receiver.dir/all
-all: CMakeFiles/sender.dir/all
+all: CMakeFiles/Receiver.dir/all
+all: CMakeFiles/Sender.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -76,8 +76,8 @@ preinstall:
 # The main recursive "clean" target.
 clean: CMakeFiles/tcp.dir/clean
 clean: CMakeFiles/udp.dir/clean
-clean: CMakeFiles/receiver.dir/clean
-clean: CMakeFiles/sender.dir/clean
+clean: CMakeFiles/Receiver.dir/clean
+clean: CMakeFiles/Sender.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -133,56 +133,56 @@ CMakeFiles/udp.dir/clean:
 .PHONY : CMakeFiles/udp.dir/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/receiver.dir
+# Target rules for target CMakeFiles/Receiver.dir
 
 # All Build rule for target.
-CMakeFiles/receiver.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/receiver.dir/build.make CMakeFiles/receiver.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/receiver.dir/build.make CMakeFiles/receiver.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bfsde/wzz-p4-stream/p4-stream/speed_test/build/CMakeFiles --progress-num=1,2 "Built target receiver"
-.PHONY : CMakeFiles/receiver.dir/all
+CMakeFiles/Receiver.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Receiver.dir/build.make CMakeFiles/Receiver.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Receiver.dir/build.make CMakeFiles/Receiver.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bfsde/wzz-p4-stream/p4-stream/speed_test/build/CMakeFiles --progress-num=1,2 "Built target Receiver"
+.PHONY : CMakeFiles/Receiver.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/receiver.dir/rule: cmake_check_build_system
+CMakeFiles/Receiver.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/bfsde/wzz-p4-stream/p4-stream/speed_test/build/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/receiver.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/Receiver.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/bfsde/wzz-p4-stream/p4-stream/speed_test/build/CMakeFiles 0
-.PHONY : CMakeFiles/receiver.dir/rule
+.PHONY : CMakeFiles/Receiver.dir/rule
 
 # Convenience name for target.
-receiver: CMakeFiles/receiver.dir/rule
-.PHONY : receiver
+Receiver: CMakeFiles/Receiver.dir/rule
+.PHONY : Receiver
 
 # clean rule for target.
-CMakeFiles/receiver.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/receiver.dir/build.make CMakeFiles/receiver.dir/clean
-.PHONY : CMakeFiles/receiver.dir/clean
+CMakeFiles/Receiver.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Receiver.dir/build.make CMakeFiles/Receiver.dir/clean
+.PHONY : CMakeFiles/Receiver.dir/clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/sender.dir
+# Target rules for target CMakeFiles/Sender.dir
 
 # All Build rule for target.
-CMakeFiles/sender.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sender.dir/build.make CMakeFiles/sender.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sender.dir/build.make CMakeFiles/sender.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bfsde/wzz-p4-stream/p4-stream/speed_test/build/CMakeFiles --progress-num=3,4 "Built target sender"
-.PHONY : CMakeFiles/sender.dir/all
+CMakeFiles/Sender.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Sender.dir/build.make CMakeFiles/Sender.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Sender.dir/build.make CMakeFiles/Sender.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/bfsde/wzz-p4-stream/p4-stream/speed_test/build/CMakeFiles --progress-num=3,4 "Built target Sender"
+.PHONY : CMakeFiles/Sender.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/sender.dir/rule: cmake_check_build_system
+CMakeFiles/Sender.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/bfsde/wzz-p4-stream/p4-stream/speed_test/build/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/sender.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/Sender.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/bfsde/wzz-p4-stream/p4-stream/speed_test/build/CMakeFiles 0
-.PHONY : CMakeFiles/sender.dir/rule
+.PHONY : CMakeFiles/Sender.dir/rule
 
 # Convenience name for target.
-sender: CMakeFiles/sender.dir/rule
-.PHONY : sender
+Sender: CMakeFiles/Sender.dir/rule
+.PHONY : Sender
 
 # clean rule for target.
-CMakeFiles/sender.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sender.dir/build.make CMakeFiles/sender.dir/clean
-.PHONY : CMakeFiles/sender.dir/clean
+CMakeFiles/Sender.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Sender.dir/build.make CMakeFiles/Sender.dir/clean
+.PHONY : CMakeFiles/Sender.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

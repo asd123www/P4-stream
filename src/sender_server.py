@@ -81,7 +81,7 @@ class SenderServer(object):
 		lib.sender.restype = ctypes.c_void_p
 		lib.sender.argtypes = [ctypes.c_wchar_p, ctypes.c_uint64, ctypes.c_uint32]
 
-		lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint64(100000000), ctypes.c_uint32(QID))
+		lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint64(10), ctypes.c_uint32(QID))
 		
 		print("Finish sending")
 

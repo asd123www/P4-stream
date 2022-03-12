@@ -65,16 +65,6 @@ CMAKE_BINARY_DIR = /home/bfsde/wzz-p4-stream/p4-stream/speed_test/build
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target rebuild_cache
-rebuild_cache:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/local/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
-.PHONY : rebuild_cache
-
-# Special rule for the target rebuild_cache
-rebuild_cache/fast: rebuild_cache
-.PHONY : rebuild_cache/fast
-
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake cache editor..."
@@ -84,6 +74,16 @@ edit_cache:
 # Special rule for the target edit_cache
 edit_cache/fast: edit_cache
 .PHONY : edit_cache/fast
+
+# Special rule for the target rebuild_cache
+rebuild_cache:
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
+	/usr/local/bin/cmake --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+.PHONY : rebuild_cache
+
+# Special rule for the target rebuild_cache
+rebuild_cache/fast: rebuild_cache
+.PHONY : rebuild_cache/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -143,37 +143,37 @@ udp/fast:
 .PHONY : udp/fast
 
 #=============================================================================
-# Target rules for targets named receiver
+# Target rules for targets named Receiver
 
 # Build rule for target.
-receiver: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 receiver
-.PHONY : receiver
+Receiver: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Receiver
+.PHONY : Receiver
 
 # fast build rule for target.
-receiver/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/receiver.dir/build.make CMakeFiles/receiver.dir/build
-.PHONY : receiver/fast
+Receiver/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Receiver.dir/build.make CMakeFiles/Receiver.dir/build
+.PHONY : Receiver/fast
 
 #=============================================================================
-# Target rules for targets named sender
+# Target rules for targets named Sender
 
 # Build rule for target.
-sender: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 sender
-.PHONY : sender
+Sender: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 Sender
+.PHONY : Sender
 
 # fast build rule for target.
-sender/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sender.dir/build.make CMakeFiles/sender.dir/build
-.PHONY : sender/fast
+Sender/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Sender.dir/build.make CMakeFiles/Sender.dir/build
+.PHONY : Sender/fast
 
 src/receiverUDP.o: src/receiverUDP.c.o
 .PHONY : src/receiverUDP.o
 
 # target to build an object file
 src/receiverUDP.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/receiver.dir/build.make CMakeFiles/receiver.dir/src/receiverUDP.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Receiver.dir/build.make CMakeFiles/Receiver.dir/src/receiverUDP.c.o
 .PHONY : src/receiverUDP.c.o
 
 src/receiverUDP.i: src/receiverUDP.c.i
@@ -181,7 +181,7 @@ src/receiverUDP.i: src/receiverUDP.c.i
 
 # target to preprocess a source file
 src/receiverUDP.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/receiver.dir/build.make CMakeFiles/receiver.dir/src/receiverUDP.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Receiver.dir/build.make CMakeFiles/Receiver.dir/src/receiverUDP.c.i
 .PHONY : src/receiverUDP.c.i
 
 src/receiverUDP.s: src/receiverUDP.c.s
@@ -189,7 +189,7 @@ src/receiverUDP.s: src/receiverUDP.c.s
 
 # target to generate assembly for a file
 src/receiverUDP.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/receiver.dir/build.make CMakeFiles/receiver.dir/src/receiverUDP.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Receiver.dir/build.make CMakeFiles/Receiver.dir/src/receiverUDP.c.s
 .PHONY : src/receiverUDP.c.s
 
 src/senderUDP.o: src/senderUDP.c.o
@@ -197,7 +197,7 @@ src/senderUDP.o: src/senderUDP.c.o
 
 # target to build an object file
 src/senderUDP.c.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sender.dir/build.make CMakeFiles/sender.dir/src/senderUDP.c.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Sender.dir/build.make CMakeFiles/Sender.dir/src/senderUDP.c.o
 .PHONY : src/senderUDP.c.o
 
 src/senderUDP.i: src/senderUDP.c.i
@@ -205,7 +205,7 @@ src/senderUDP.i: src/senderUDP.c.i
 
 # target to preprocess a source file
 src/senderUDP.c.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sender.dir/build.make CMakeFiles/sender.dir/src/senderUDP.c.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Sender.dir/build.make CMakeFiles/Sender.dir/src/senderUDP.c.i
 .PHONY : src/senderUDP.c.i
 
 src/senderUDP.s: src/senderUDP.c.s
@@ -213,7 +213,7 @@ src/senderUDP.s: src/senderUDP.c.s
 
 # target to generate assembly for a file
 src/senderUDP.c.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/sender.dir/build.make CMakeFiles/sender.dir/src/senderUDP.c.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Sender.dir/build.make CMakeFiles/Sender.dir/src/senderUDP.c.s
 .PHONY : src/senderUDP.c.s
 
 src/tcp.o: src/tcp.c.o
@@ -272,8 +272,8 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... receiver"
-	@echo "... sender"
+	@echo "... Receiver"
+	@echo "... Sender"
 	@echo "... tcp"
 	@echo "... udp"
 	@echo "... src/receiverUDP.o"

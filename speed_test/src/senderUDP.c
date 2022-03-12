@@ -45,7 +45,7 @@
 
 
 const int num_devices_attached = 1;
-const int devices_attached[32] = {1};
+const int devices_attached[32] = {0};  // ethtool -i enp129s0f1 查询pcie的bus端口号.
 uint8_t devices_hwaddr[32][6];
 
 static uint8_t rss_key[] = {
@@ -59,8 +59,8 @@ const struct rte_eth_conf port_conf_default = {
     .rxmode = {
         .mq_mode = ETH_MQ_RX_RSS,
         .split_hdr_size = 0,
-        .max_rx_pkt_len = 1536,
-        .offloads = DEV_RX_OFFLOAD_JUMBO_FRAME
+        .max_rx_pkt_len = 1514,
+        .offloads = 0
     },
     .rx_adv_conf = {
 		.rss_conf = {
@@ -156,8 +156,9 @@ int dpdk_load_module(void) {
 
         dpdk_info.nb_rxd[portid] = RTE_TEST_RX_DESC_DEFAULT;
         dpdk_info.nb_txd[portid] = RTE_TEST_TX_DESC_DEFAULT;
+        // dpdk_info.nb_txd[portid] = RTE_TEST_TX_DESC_DEFAULT;
         rte_eth_dev_adjust_nb_rx_tx_desc(portid, &dpdk_info.nb_rxd[portid], &dpdk_info.nb_txd[portid]);
-        // dpdk_info.port_conf[portid].rx_adv_conf.rss_conf.rss_hf &= dpdk_info.dev_info[portid].r
+        dpdk_info.port_conf[portid].rx_adv_conf.rss_conf.rss_hf &= dpdk_info.dev_info[portid].flow_type_rss_offloads;
         ret = rte_eth_dev_configure(portid, dpdk_info.num_rxq[portid], 1, &dpdk_info.port_conf[portid]);
         if (ret < 0) {
             // LOG_ERR("[IO_DPDK]\tFailed to configure dev\n");
@@ -233,7 +234,7 @@ void* dpdk_init_handle_up(uint16_t nif, uint32_t stack_id) {
     dpc->txq_id = dpdk_info.idx_txq[portid]++;
 
     struct rte_eth_txconf txq_conf = dpdk_info.dev_info[portid].default_txconf;
-    txq_conf.offloads = dpdk_info.port_conf[portid].txmode.offloads;
+    txq_conf.offloads = 0; //dpdk_info.port_conf[portid].txmode.offloads;
 
     printf("Setting portid = %d\n", portid);
     ret = rte_eth_tx_queue_setup(portid, dpc->txq_id, dpdk_info.nb_txd[portid], rte_eth_dev_socket_id(portid), &txq_conf);
@@ -580,6 +581,8 @@ void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
     }
     fclose(file);
 
+
+    int count = 100;
     uint16_t ip_id = 0;
     for (uint32_t accum = 0;;) {
         for (int i = 0; i < n; ++i) {
@@ -594,6 +597,8 @@ void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
                 accum = 0;
             }
         }
+
+        if (--count == 0) break;
     }
 
     for (int i = 0; i < n; ++i) rte_free(pkt[i]);
