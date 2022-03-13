@@ -100,6 +100,7 @@ if __name__ == "__main__":
 		em_server = Emitter_Server(em_conf, formats)
 		em_server_thread = Thread(name="em_server", target=em_server.start) # run the emitter.
 		em_server_thread.start()
+		while em_server.emitter.signal.value == 0: pass # wait until DPDK receiver is ok.
 		conn.send("ready")
 		print("=== ready ===")
 

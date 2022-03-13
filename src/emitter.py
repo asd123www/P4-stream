@@ -69,6 +69,9 @@ class Emitter(object):
 		
 	
 	def stop(self):
+		return # 为什么我们要这么停止? sender DPDK发送停止消息!
+		
+		time.sleep(20)
 		self.signal.value = 1 # tell the DPDK that you can close.
 		self._stop_event.set()
 	

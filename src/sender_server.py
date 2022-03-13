@@ -80,13 +80,18 @@ class SenderServer(object):
 		lib.sender.restype = ctypes.c_void_p
 		lib.sender.argtypes = [ctypes.c_wchar_p, ctypes.c_uint64, ctypes.c_uint32]
 
+		print("no wait for 10 seconds....")
+		time.sleep(10)
+
 		self.send_cnt = 1
-		lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint64(10), ctypes.c_uint32(QID))
+		lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint64(5), ctypes.c_uint32(QID))
 		
 		print("Finish sending")
 
 
 	def finish(self):
+		time.sleep(10)
+
 		print("=== finish ===")
 		if self.conf["echo"]:
 			self.echo_server.stop()
