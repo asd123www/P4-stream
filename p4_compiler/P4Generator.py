@@ -3,7 +3,7 @@ from dis import show_code
 from re import L
 import sys
 import os
-from p4_compiler.StaticCode import P4String
+from StaticCode import P4String
 
 
 '''
@@ -361,9 +361,15 @@ class P4Generator():
         p4_code = ''
         em_formats = []
 
-        self.readStr("/p4-code/half.p4")
+        self.readStr("p4-code/half.p4")
 
         for p4_query in self.PacketStream:
+            self.Map('origin', 'identity', '32w0', '+')
+            self.Filter('identity', '32w0', '>=')
+            self.Map('identity', 'add3', '32w3', '+')
+            self.P4String.generate(p4_query['qid'])
+            #em_formats.append({"qid": p4_query.qid, "qname": p4_query.qname, "em_format": self.keyname[-1]})
+            continue
             for operator in p4_query.operators:
                 # print(operator[0])
                 if operator[0] == 'Map':
@@ -377,7 +383,7 @@ class P4Generator():
 
             em_formats.append({"qid": p4_query.qid, "qname": p4_query.qname, "em_format": self.keyname[-1]})
 
-        self.readStr("/p4-code/pipe.p4")
+        self.readStr("p4-code/pipe.p4")
 
         for line in self.lst: p4_code += line + '\n'
 
@@ -391,3 +397,9 @@ class P4Generator():
         #     file.write(p4_code)
 
         return p4_code, self.sh_code, em_formats
+
+a = P4Generator([{"qid":0, "qname":"test", "em_format":"origin"}]).solve()
+with open('test2.p4', 'w') as f:
+    f.write(a[0])
+with open('test2.py', 'w') as f:
+    f.write(a[1])

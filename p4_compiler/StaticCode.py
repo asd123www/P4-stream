@@ -17,125 +17,84 @@ class P4String():
         tab = chr(9)
 
         # header
-        self.generator.lst.append('control SwitchIngress(')
-        self.generator.lst.append(tab + 'inout header_t hdr,')
-        self.generator.lst.append(tab + 'inout metadata_t ig_md,')
-        self.generator.lst.append(tab + 'in ingress_intrinsic_metadata_t ig_intr_md,')
-        self.generator.lst.append(tab + 'in ingress_intrinsic_metadata_from_parser_t ig_prsr_md,')
-        self.generator.lst.append(tab + 'inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md,')
-        self.generator.lst.append(tab + 'inout ingress_intrinsic_metadata_for_tm_t ig_tm_md) {')
-        self.generator.lst.append('')
-
+        with open('p4-code/SwitchIngress.p4' ,'r') as f:
+            p4_code = f.read()
 
         # the GET_THRESHOLD() function.
-        self.generator.lst.append(tab + "GET_THRESHOLD() get_threshold;")
+        with open('p4-code/get_threshold.p4' ,'r') as f:
+            part_get_threshold = f.read()
+        p4_code = p4_code.replace('<part_get_threshold>', part_get_threshold)
 
         prefix = 'bfrt.simple_l3.pipe.SwitchIngress.get_threshold.tbl_get_threshold'
-        self.generator.sh_code += '{}.clear()\n'.format(prefix)
-        self.generator.sh_code += '{}.add_with_tbl_get_threshold_act(qid={}, threshold={})\n'.format(prefix, qid, 10)
-        self.generator.sh_code += '{}.dump()\n\n\n'.format(prefix)
+        with open('py-code/get_threshold.py' ,'r') as f:
+            py_get_threshold = f.read()
+        py_get_threshold = py_get_threshold.replace('<prefix>', prefix).replace('<qid>', str(qid)).replace('<threshold>', str(10))
+        self.generator.sh_code += py_get_threshold
         
         # the drop function
-        self.generator.lst.append('')
-        self.generator.lst.append('    action drop() {')
-        self.generator.lst.append('        ig_dprsr_md.drop_ctl = 1;')
-        self.generator.lst.append('    }')
-        self.generator.lst.append('')
+        with open('p4-code/drop.p4' ,'r') as f:
+            part_drop = f.read()
+        p4_code = p4_code.replace('<part_drop>', part_drop)
 
         # the flag0/1 action
-        self.generator.lst.append(tab + "action flag1() {")
-        self.generator.lst.append(tab*2 + "ig_md.flag = 1;")
-        self.generator.lst.append(tab + "}")
-        self.generator.lst.append(tab + "action flag0() {")
-        self.generator.lst.append(tab*2 + "ig_md.flag = 0;")
-        self.generator.lst.append(tab + "}")
+        with open('p4-code/flag.p4' ,'r') as f:
+            part_flag = f.read()
+        p4_code = p4_code.replace('<part_flag>', part_flag)
 
         # the stflag match action table
-        self.generator.lst.append(tab + "table stflag{")
-        self.generator.lst.append(tab*2 + "key = {")
-        self.generator.lst.append(tab*3 + "ig_md.flag : exact;")
-        self.generator.lst.append(tab*2 + "}")
-        self.generator.lst.append(tab*2 + "actions = {")
-        self.generator.lst.append(tab*3 + "flag1;")
-        self.generator.lst.append(tab*3 + "flag0;")
-        self.generator.lst.append(tab*2 + "}")
-        self.generator.lst.append(tab*2 + "size = 2;")
-        self.generator.lst.append(tab*2 + "default_action = flag0();")
-        self.generator.lst.append(tab + "}")
-        self.generator.lst.append('')
+        with open('p4-code/set_flag_action_table.p4' ,'r') as f:
+            part_set_flag_action_table = f.read()
+        p4_code = p4_code.replace('<part_set_flag_action_table>', part_set_flag_action_table)
 
         # the ipv4_forward action
-        self.generator.lst.append(tab + "action ipv4_forward(mac_addr_t dst_addr, PortId_t port) {")
-        self.generator.lst.append(tab*2 + "ig_tm_md.ucast_egress_port = port;")
-        self.generator.lst.append(tab*2 + "hdr.ethernet.src_addr = hdr.ethernet.dst_addr;")
-        self.generator.lst.append(tab*2 + "hdr.ethernet.dst_addr = dst_addr;")
-        self.generator.lst.append(tab*2 + "hdr.ipv4.ttl = hdr.ipv4.ttl - 1;")
-        self.generator.lst.append(tab + "}")
-        self.generator.lst.append('')
+        with open('p4-code/ipv4_forward.p4' ,'r') as f:
+            part_ipv4_forward = f.read()
+        p4_code = p4_code.replace('<part_ipv4_forward>', part_ipv4_forward)
 
         # the ipv4_lpm table
-        self.generator.lst.append(tab + "table ipv4_lpm {")
-        self.generator.lst.append(tab*2 + "key = {")
-        self.generator.lst.append(tab*3 + "hdr.ipv4.dst_addr: lpm;")
-        self.generator.lst.append(tab*2 + "}")
-        self.generator.lst.append(tab*2 + "actions = {")
-        self.generator.lst.append(tab*3 + "ipv4_forward;")
-        self.generator.lst.append(tab*3 + "drop;")
-        self.generator.lst.append(tab*3 + "NoAction;")
-        self.generator.lst.append(tab*2 + "}")
-        self.generator.lst.append(tab*2 + "size = 512;")
-        self.generator.lst.append(tab*2 + "default_action = NoAction();")
-        self.generator.lst.append(tab + "}")
-        self.generator.lst.append('')
-# bfrt.simple_l3.pipe.SwitchIngress.ipv4_lpm.clear()
-# bfrt.simple_l3.pipe.SwitchIngress.ipv4_lpm.add_with_ipv4_forward(hdr_ipv4_dst_addr=ip("10.1.100.2"), hdr_ipv4_dst_addr_p_length=32, dst_addr=mac("8e:cd:61:c6:12:5c"), port=1)
-# bfrt.simple_l3.pipe.SwitchIngress.ipv4_lpm.dump()
+        with open('p4-code/ipv4_lpm.p4' ,'r') as f:
+            part_ipv4_lpm = f.read()
+        p4_code = p4_code.replace('<part_ipv4_lpm>', part_ipv4_lpm)
+
+
         prefix = 'bfrt.simple_l3.pipe.SwitchIngress.ipv4_lpm'
-        self.generator.sh_code += '{}.clear()\n'.format(prefix)
-        for ip_mac_addr in self.generator.lpmEntries:
-            # print(*ip_mac_addr)
-            self.generator.sh_code += '{}.add_with_ipv4_forward(hdr_ipv4_dst_addr=ip("{}"), hdr_ipv4_dst_addr_p_length={}, dst_addr=mac("{}"), port={})\n'.format(prefix, *ip_mac_addr)
-        self.generator.sh_code += '{}.dump()\n\n\n'.format(prefix)
+        with open('py-code/ipv4_lpm.py' ,'r') as f:
+            py_ipv4_lpm = f.read()
+        ip_mac_addr  = self.generator.lpmEntries[0]
+        py_ipv4_lpm = py_ipv4_lpm.replace('<prefix>', prefix).replace('<params>', 'hdr_ipv4_dst_addr=ip("{}"), hdr_ipv4_dst_addr_p_length={}, dst_addr=mac("{}"), port={}'.format(*ip_mac_addr))
+        self.generator.sh_code += py_ipv4_lpm
 
-
-
+        part_operators = ''
         for i, op in enumerate(self.generator.operators):
-            self.generator.lst.append(tab + op + '()  ' + 'func_' + str(i) +';')
-
-        self.generator.lst.append('')
-        self.generator.lst.append(tab + "apply {")
-        self.generator.lst.append(tab*2 + "stflag.apply();")
-        self.generator.lst.append(tab*2 + 'get_threshold.apply(hdr, ig_md);')
+            part_operators += tab + op + '()  ' + 'func_' + str(i) +';\n'
+        p4_code = p4_code.replace('<part_operators>', part_operators)
 
 
+        with open('p4-code/apply.p4' ,'r') as f:
+            part_apply = f.read()
         # call each function sequentially.
-        self.generator.lst.append('')
+        apply_operators = ''
         for i,op in enumerate(self.generator.operators):
             procedure = 'func_'+str(i)+'.apply'
             line = tab*2 + procedure + '(hdr, ig_md'
             if (op[:6] == 'filter'): line += ', ig_dprsr_md'
             line +=');'
-            self.generator.lst.append(line)
+            apply_operators += line + '\n'
 
         # func_0.apply(hdr, ig_md);
 		# func_1.apply(hdr, ig_md, ig_dprsr_md);
 		# func_2.apply(hdr, ig_md);
 		# func_3.apply(hdr, ig_md);
-        self.generator.lst.append('')
-
         '''
         if multiple values, then choose the last one.
         '''
         if len(self.generator.keyname) > 1:
             old_key = self.generator.keyname[0]
             new_key = self.generator.keyname[-1]
-            self.generator.lst.append(tab*2 + self.generator.findVarStr(old_key, 'value') +' = '+ self.generator.findVarStr(new_key, 'value') +';')
-
-
-        self.generator.lst.append(tab*2 + "ipv4_lpm.apply();")
-        self.generator.lst.append(tab + "}")
-
-        self.generator.lst.append("}")
+            apply_operators += tab*2 + self.generator.findVarStr(old_key, 'value') +' = '+ self.generator.findVarStr(new_key, 'value') +';\n'
+        part_apply = part_apply.replace('<apply_operators>', apply_operators)
+        p4_code = p4_code.replace('<part_apply>', part_apply)
+        self.generator.lst.append(p4_code)
 
 
 
