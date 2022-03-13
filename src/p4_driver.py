@@ -122,8 +122,8 @@ class P4Driver(object):
 		self.p4_driver_command_thread = Thread(name="p4_command", target=self.send_command)
 		self.p4_driver_command_thread.start()
 
-		if self.conf["hw"] != True: self.p4_model_thread.join()
-		self.p4_driver_command_thread.join()
+		if self.conf["hw"] != True: self.p4_model_thread.join(10)
+		self.p4_driver_command_thread.join(10)
 		self.p4_driver_thread.join(10)
 
 	def exit(self):
