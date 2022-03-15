@@ -30,16 +30,11 @@ class MapOperator():
 
     def generate(self):
         name = 'map_' + self.old_key +'_'+ self.new_key +'_'+ self.constant +'_'+ self.transfer[self.operation] +'_'+ str(self.generator.counter)
-        self.generator.lst.append('control ' + name + '(')
-        self.generator.lst.append('        ' + 'inout header_t hdr,')
-        self.generator.lst.append('        ' + 'inout metadata_t ig_md) {')
-        self.generator.lst.append('')
-        self.generator.lst.append('    apply {')
-        self.generator.lst.append('        ' + self.generator.findVarStr(self.new_key, 'value') +' = '+ self.constant +' '+ self.operation +' '+ self.generator.findVarStr(self.old_key, 'value') + ';')
-        self.generator.lst.append('    }')
-        self.generator.lst.append('}')
-        self.generator.lst.append('\n')
-        
+        with open('p4-code/operator/map.p4' ,'r') as f:
+            part_map = f.read()
+        part_map = part_map.replace('<name>', name)
+        part_map = part_map.replace('<operation>', self.generator.findVarStr(self.new_key, 'value') +' = '+ self.constant +' '+ self.operation +' '+ self.generator.findVarStr(self.old_key, 'value') + ';')
+        self.generator.lst.append(part_map)
         return name
         # self.code["apply"].append('// map ' + old_key +' '+ new_key +' '+ constant +' '+ operation) # the notation.
         # self.code["apply"].append(self.findVarStr(new_key, 'value') +' = '+ constant +' '+ operation +' '+ self.findVarStr(old_key, 'value') + ';');
@@ -74,26 +69,12 @@ class FilterOperator():
 
     def generate(self):
         name = 'filter_' + self.key +'_'+ self.threshold +'_'+ self.transfer[self.operation] +'_'+ str(self.generator.counter)
-
-        self.generator.lst.append('control ' + name + '(')
-        self.generator.lst.append('        ' + 'inout header_t hdr,')
-        self.generator.lst.append('        ' + 'inout metadata_t ig_md,')
-        self.generator.lst.append('        ' + 'inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md) {')
-        self.generator.lst.append('')
-        self.generator.lst.append('    action drop() {')
-        self.generator.lst.append('        ig_dprsr_md.drop_ctl = 1;')
-        self.generator.lst.append('    }')
-        self.generator.lst.append('')
-
-        self.generator.lst.append('    apply {')
+        with open('p4-code/operator/filter.p4' ,'r') as f:
+            part_filter = f.read()
+        part_filter = part_filter.replace('<name>', name)
+        part_filter = part_filter.replace('<condition>', self.generator.findVarStr(self.key, 'value') +' '+ self.generator.inverse[self.operation] +' '+ self.threshold)
+        self.generator.lst.append(part_filter)
         
-        self.generator.lst.append('        if(' + self.generator.findVarStr(self.key, 'value') +' '+ self.generator.inverse[self.operation] +' '+ self.threshold +')');
-        self.generator.lst.append('            drop();'); # For only one (key, value). If multiple we shouldn't drop the packet.
-
-        self.generator.lst.append('    }')
-        self.generator.lst.append('}')
-        self.generator.lst.append('\n')
-
         return name
         # self.code["apply"].append('// filter ' + key +' '+ threshold +' '+ operation) # the notation.
         # self.code["apply"].append('if(' + self.findVarStr(key, 'value') +' '+ self.inverse[operation] +' '+ threshold +')');
@@ -129,26 +110,26 @@ class ReduceOperator():
         tab = chr(9)
 
         name = 'reduce_' + self.key +'_'+ self.operation +'_'+ str(self.num) +'_'+ str(self.length) +'_'+ str(self.generator.counter)
-
-        self.generator.lst.append('control ' + name + '(')
-        self.generator.lst.append(tab*2 + 'inout header_t hdr,')
-        self.generator.lst.append(tab*2 + 'inout metadata_t ig_md) {')
-        self.generator.lst.append('')
-
+        with open('p4-code/operator/reduce.p4' ,'r') as f:
+            part_reduce = f.read()
+        part_reduce = part_reduce.replace('<name>', name)
         # define the sketch.
+        part_define_sketch = ''
         seed = ['32w0x30243f0b', '32w0x0f79f523', '32w0x6b8cb0c5', '32w0x00390fc3', '32w0x298ac673']
         for i in range(self.num):
-            self.generator.lst.append(tab + self.sketchName[self.operation] +'('+ seed[i] +') update_'+str(self.generator.counter)+'_'+str(i)+';')
-        self.generator.lst.append('')
-
+            part_define_sketch = part_define_sketch + tab + self.sketchName[self.operation] +'('+ seed[i] +') update_'+str(self.generator.counter)+'_'+str(i)+';\n'
+    
+        part_reduce = part_reduce.replace('<define_sketch>', part_define_sketch)
         # define the action: judge the want and overlap the useless.
+        part_define_action = ''
         for i in range(1, self.num):
-            self.generator.lst.append(tab + 'action a'+str(i+1)+'() {')
-            self.generator.lst.append(tab*2 + 'ig_md.est_'+str(i+1)+' = ig_md.est_'+str(i)+';')
-            self.generator.lst.append(tab + '}')
-        self.generator.lst.append('')
+            part_define_action = part_define_action + tab + 'action a'+str(i+1)+'() {\n'
+            part_define_action = part_define_action + tab*2 + 'ig_md.est_'+str(i+1)+' = ig_md.est_'+str(i)+';\n'
+            part_define_action = part_define_action + tab + '}\n'
+        part_reduce = part_reduce.replace('<define_action>', part_define_action)
 
         # define the match/action table: 
+        part_match_action_table = ''
         for i in range(1, self.num):
             # bfrt.simple_l3.pipe.SwitchIngress.t2.clear()
             # bfrt.simple_l3.pipe.SwitchIngress.t2.add_with_a2(c_2 = 0)
@@ -157,50 +138,42 @@ class ReduceOperator():
             # self.generator.sh_code += '{}.clear()\n'.format(prefix)
             # self.generator.sh_code += '{}.add_with_a{}(c_{} = 0)\n'.format(prefix, i+1, i+1)
             # self.generator.sh_code += '{}.dump()\n\n\n'.format(prefix)
+            with open('p4-code/operator/match_action_table.p4' ,'r') as f:
+                match_action_table = f.read()
+            match_action_table = match_action_table.replace('<num>', str(i+1))
+            part_match_action_table += match_action_table
+        part_reduce = part_reduce.replace('<match_action_table>', part_match_action_table)
+        
 
-            self.generator.lst.append(tab + 'table t'+str(i+1)+' {')
-            self.generator.lst.append(tab*2 + 'key = {')
-            self.generator.lst.append(tab*3 + 'ig_md.c_'+str(i+1)+' : exact;')
-            self.generator.lst.append(tab*2 + '}')
-            self.generator.lst.append(tab*2 + 'actions = {')
-            self.generator.lst.append(tab*3 + 'a'+str(i+1)+';')
-            self.generator.lst.append(tab*3 + 'NoAction;')
-            self.generator.lst.append(tab*2 + '}')
-            self.generator.lst.append(tab*2 + 'default_action = NoAction();')
-            self.generator.lst.append(tab + '}')
-        self.generator.lst.append('')
-
-
-        self.generator.lst.append(tab + 'apply {')
         # drop other keys.
         # 1. copy the value to header.
-        self.generator.lst.append(tab*2+self.generator.findVarStr('origin', 'value')+' = '+self.generator.findVarStr(self.key, 'value')+';')
+        part_reduce = part_reduce.replace('<copy_the_value_to_header>', tab*2+self.generator.findVarStr('origin', 'value')+' = '+self.generator.findVarStr(self.key, 'value')+';')
         # 2. drop other keys.
         self.generator.keyname = ['origin']
 
-
         # fill the apply content.
+        part_apply_content = ''
         for i in range(self.num):
             func = 'update_'+str(self.generator.counter)+'_'+str(i)
             self.generator.arraylist.append('bfrt.simple_l3.pipe.SwitchIngress.func_{}.{}'.format(self.generator.counter-1, func))
-            self.generator.lst.append(tab*2+func+'.apply(hdr, ig_md.flag, ig_md.est_'+str(i+1)+');')
+            part_apply_content += tab*2+func+'.apply(hdr, ig_md.flag, ig_md.est_'+str(i+1)+');\n'
+        
+        part_reduce = part_reduce.replace('<apply_content>', part_apply_content)
         
         # fill the judge variable.
+        part_judge_variable = ''
         for i in range(1, self.num):
-            self.generator.lst.append(tab*2 + 'ig_md.est_1'+str(i+1)+' = ig_md.est_'+str(i+1)+' - ig_md.est_'+str(i)+';')
-            self.generator.lst.append(tab*2 + 'ig_md.c_'+str(i+1)+' = (bit<1>) (ig_md.est_1'+str(i+1)+' >> 31);')
-            self.generator.lst.append(tab*2 + 't'+str(i+1)+'.apply();')
+            part_judge_variable += tab*2 + 'ig_md.est_1'+str(i+1)+' = ig_md.est_'+str(i+1)+' - ig_md.est_'+str(i)+';\n'
+            part_judge_variable += tab*2 + 'ig_md.c_'+str(i+1)+' = (bit<1>) (ig_md.est_1'+str(i+1)+' >> 31);\n'
+            part_judge_variable += tab*2 + 't'+str(i+1)+'.apply();\n'
         # ig_md.est_12 = ig_md.est_2 - ig_md.est_1;
         # ig_md.c_2 = (bit<1>) (ig_md.est_12 >> 31);
         # t2.apply();
-
-
+        part_reduce = part_reduce.replace('<judge_variable>', part_judge_variable)
+        
         # you should restore the result in header.value
-        self.generator.lst.append(tab*2+self.generator.findVarStr('origin', 'value')+' = ig_md.est_'+str(self.num)+';')
-
-        self.generator.lst.append(tab + '}')
-        self.generator.lst.append('}')
-        self.generator.lst.append('\n')
+        part_reduce = part_reduce.replace('<restore_result>', tab*2+self.generator.findVarStr('origin', 'value')+' = ig_md.est_'+str(self.num)+';')
+        self.generator.lst.append(part_reduce)
 
         return name
 
