@@ -12,7 +12,7 @@ lib.sender.restype = ctypes.c_void_p
 lib.sender.argtypes = [ctypes.c_wchar_p, ctypes.c_uint64, ctypes.c_uint32]
 
 st = time.time()
-lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint64(5), ctypes.c_uint32(QID))
-print("Throughput: {}MB".format((1000000.0)/(time.time()-st)/1024/1024))
+lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint64(3), ctypes.c_uint32(QID))
+print("Throughput: {}MB".format((300000000.0)/(time.time()-st)/1024/1024))
 
 print("Finish sending")

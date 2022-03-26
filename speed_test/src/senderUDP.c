@@ -536,11 +536,12 @@ int packetFormat(char *key, int value, int QID) {
     int len = 4 + key_len + val_len;
 
     // prepare the content.
-    *((unsigned short *) key) = QID;
-    *((unsigned short *) key + 1) = len;
-    *((unsigned short *) key + 2) = key_len;
-    *((unsigned short *) key + 3) = val_len;
-    *((unsigned int *) (key + 8 + key_len)) = value;
+    printf("QID: %d\n", htons(QID));
+    *((unsigned short *) key) = htons(QID);
+    *((unsigned short *) key + 1) = htons(len);
+    *((unsigned short *) key + 2) = htons(key_len);
+    *((unsigned short *) key + 3) = htons(val_len);
+    *((unsigned int *) (key + 8 + key_len)) = htonl(value);
 
     return key_len + 12;
 }
@@ -582,26 +583,28 @@ void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
         pkt[i] = generate_packet(len, keys);
     }
     // fclose(file);
-
+    printf("%d\n", n);
+    for (int i = 0; i < n; ++i) printf("%d\n", pkt[i] -> length);
 
     uint16_t ip_id = 0;
     u_int64_t totalByte = 0;
-    for (uint32_t accum = 0; totalByte < 1000ll;) {
+    for (uint32_t accum = 0; totalByte < 112ll;) {
         for (int i = 0; i < n; ++i) {
             ipv4_header_t* ipv4 = pkt[i]->data + sizeof(ethernet_header_t);
             void* ptr = dpdk_module_func.get_wptr(up_handle, pkt[i], pkt[i]->length);
             ipv4->id = ntohs(ip_id ++);
             rte_memcpy(ptr, pkt[i]->data, pkt[i] -> length);
             // accum += pkt[i] -> length;
-            accum += 1;
+            ++ accum;
+            ++ totalByte;
 
             if (accum > burst_size) {
                 dpdk_module_func.send_pkts(up_handle);
-                totalByte += accum;
+                // totalByte += accum;
                 accum = 0;
             }
         }
-        printf("Bytes sent: %d\n", totalByte);
+        // printf("Bytes sent: %d\n", totalByte);
     }
 
     for (int i = 0; i < n; ++i) rte_free(pkt[i]);

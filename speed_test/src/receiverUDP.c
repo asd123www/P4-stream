@@ -549,18 +549,18 @@ u_int32_t hash(char *buf, u_int32_t len) {
 
 // deparse the packet.
 void packetFormat(kvPair *p, char *buf) {
-    int QID = *((unsigned short *) buf);
-    int len = *((unsigned short *) buf + 1);
-    int key_len = *((unsigned short *) buf + 2);
-    int val_len = *((unsigned short *) buf + 3);
+    int QID = ntohs(*((unsigned short *) buf));
+    int len = ntohs(*((unsigned short *) buf + 1));
+    int key_len = ntohs(*((unsigned short *) buf + 2));
+    int val_len = ntohs(*((unsigned short *) buf + 3));
     u_int32_t key = hash(buf + 8, key_len);
-    int value = *((unsigned int *) (buf + 8 + key_len));
+    int value = ntohl(*((unsigned int *) (buf + 8 + key_len)));
 
     // printf("QID: %d, key_len: %d, val_len: %d\n", QID, key_len, val_len);
     // printf("key: ");
     // for(int i = 0; i < key_len; ++i) putchar(*(buf + 8 + i));
     // printf(", value: %d\n\n\n", value);
-
+    
     p -> QID = QID;
     p -> key = key;
     p -> value = value;
@@ -569,8 +569,11 @@ void packetFormat(kvPair *p, char *buf) {
 }
 
 
+
 void WordCount(kvPair *p) {
-    // printf("QID: %d, key:%d, value:%d\n\n", p->QID, p->key, p->value);
+    static int num___ = 0;
+    printf("seq: %d\n", ++num___);
+    printf("QID: %d, key:%d, value:%d\n\n", p->QID, p->key, p->value);
 }
 
 
@@ -607,10 +610,11 @@ void receiver(int *signal) {
     int total = 0;
     *signal = 1;
     printf("In receiver UDP: I'm ready!\n");
+
     while(1) { // sniffer the port.
         int recv_num = dpdk_module_func.recv_pkts(down_handle);
         total += recv_num;
-        if (recv_num) printf("In round: %d\n", total);
+        // if (recv_num) printf("In round: %d\n", total);
         for(int i = 0; i < recv_num; i ++) {
             dpdk_module_func.get_rptr(down_handle, data, i);
             ipv4_header_t* data_ipv4 = data->data + sizeof(ethernet_header_t);
