@@ -1,5 +1,17 @@
 {
     "files.associations": {
-        "string_view": "c"
+        "string_view": "c",
+        "optional": "c",
+        "istream": "c",
+        "ostream": "c",
+        "ratio": "c",
+        "system_error": "c",
+        "array": "c",
+        "functional": "c",
+        "tuple": "c",
+        "type_traits": "c",
+        "utility": "c",
+        "io_module.h": "c",
+        "rte_ethdev.h": "c"
     }
 }

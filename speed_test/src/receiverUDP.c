@@ -41,7 +41,9 @@
 
 // wzz: packet length.
 #define MaxPacket 1000
-#define wordLength 1000
+#define wordLength 100
+#define largePrime 23333
+
 
 const int num_devices_attached = 1;
 const int devices_attached[32] = {0};  // ethtool -i enp129s0f1 查询pcie的bus端口号.
@@ -153,8 +155,8 @@ int dpdk_load_module(void) {
         dpdk_info.port_conf[portid].txmode.offloads &= dpdk_info.dev_info[portid].tx_offload_capa;
         // rte_eth_dev_set_ptypes(portid, RTE_PTYPE_UNKNOWN, NULL, 0);
 
-        dpdk_info.nb_rxd[portid] = RTE_TEST_RX_DESC_DEFAULT >> 3;
-        dpdk_info.nb_txd[portid] = RTE_TEST_TX_DESC_DEFAULT >> 3;
+        dpdk_info.nb_rxd[portid] = RTE_TEST_RX_DESC_DEFAULT;
+        dpdk_info.nb_txd[portid] = RTE_TEST_TX_DESC_DEFAULT;
         // dpdk_info.nb_txd[portid] = RTE_TEST_TX_DESC_DEFAULT;
         rte_eth_dev_adjust_nb_rx_tx_desc(portid, &dpdk_info.nb_rxd[portid], &dpdk_info.nb_txd[portid]);
         dpdk_info.port_conf[portid].rx_adv_conf.rss_conf.rss_hf &= dpdk_info.dev_info[portid].flow_type_rss_offloads;
@@ -231,8 +233,6 @@ void* dpdk_init_handle_up(uint16_t nif, uint32_t stack_id) {
     pthread_mutex_lock(&dpdk_info.mutex);
     dpc->portid = portid;
     dpc->txq_id = dpdk_info.idx_txq[portid]++;
-    // printf("TEST: %d\n", dpdk_info.idx_txq[portid]);
-    // printf("\n\nportid:%d\n\n", portid);
 
     struct rte_eth_txconf txq_conf = dpdk_info.dev_info[portid].default_txconf;
     txq_conf.offloads = 0; //dpdk_info.port_conf[portid].txmode.offloads;
@@ -471,16 +471,9 @@ void dpdk_init(char *cpumask, uint32_t main_core) {
 
 
 
-
-// the c code define thread_num.
-uint8_t thread_num;
 uint32_t src_ip, dst_ip;
 uint16_t src_port, dst_port;
 uint8_t dst_mac[6];
-
-char keys[wordLength];
-packet_data_t *pkt[MaxPacket];
-
 
 packet_data_t* generate_packet(uint32_t payload_length, char *buf) {
     packet_data_t* pkt = rte_malloc(NULL, sizeof(packet_data_t), 64);
@@ -496,7 +489,7 @@ packet_data_t* generate_packet(uint32_t payload_length, char *buf) {
     ipv4h->length = sizeof(ipv4_header_t);
     udph->data = pkt->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t);
     udph->length = sizeof(udp_header_t);
-    memcpy(pkt->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t) + sizeof(udp_header_t), buf, payload_length);
+    // memcpy(pkt->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t) + sizeof(udp_header_t), buf, payload_length)
 
     ethernet_header_t* eth = ethh->data;
     ipv4_header_t* ipv4 = ipv4h->data;
@@ -521,34 +514,72 @@ packet_data_t* generate_packet(uint32_t payload_length, char *buf) {
 }
 
 
-int packetFormat(char *key, int value, int QID) {
-    int is_hash = 0;
 
+typedef struct kvPair{
+    int QID;
+    u_int32_t key;
+    int value;
+}kvPair;
+
+typedef struct hashTable {
+    u_int32_t keys[largePrime];
+    int values[largePrime];
+
+    int* (*query) (u_int32_t* keys, int *values, u_int32_t key);
+}hashTable;
+
+int *hashQueryPosition(u_int32_t* keys, int *values, u_int32_t key) {
+    int i = key%largePrime;
+    for(; keys[i] && keys[i] != key; ++i) if (i + 1 == largePrime) i = -1;
+    keys[i] = key;
+    return values + i;
+}
+
+u_int32_t hash(char *buf, u_int32_t len) {
+    u_int32_t ans = 0;
+    for(u_int32_t i = 0; i < len; ++i) ans = ans * 1000000007 + buf[i];
+    return ans;
+}
+// how to use?
+// hashTable a;
+// a.query = hashQueryPosition;
+// uint32_t key = hash(s, strlen(s));
+// a.query(a.keys, a.values, key)
+
+
+// deparse the packet.
+void packetFormat(kvPair *p, char *buf) {
+    int QID = ntohs(*((unsigned short *) buf));
+    int len = ntohs(*((unsigned short *) buf + 1));
+    int key_len = ntohs(*((unsigned short *) buf + 2));
+    int val_len = ntohs(*((unsigned short *) buf + 3));
+    u_int32_t key = hash(buf + 8, key_len);
+    int value = ntohl(*((unsigned int *) (buf + 8 + key_len)));
+
+    // printf("QID: %d, key_len: %d, val_len: %d\n", QID, key_len, val_len);
+    // printf("key: ");
+    // for(int i = 0; i < key_len; ++i) putchar(*(buf + 8 + i));
+    // printf(", value: %d\n\n\n", value);
     
-    if (is_hash) { // wait to change.
-        // hash_key = hash(key)
-        // self.hash_dict[hash_key] = key
-        // key = hex(hash_key)
-    }
-    int key_len = strlen(key + 8); // offset = 8.
-    int val_len = 4; // fixed, hard to increase...
-    while (key_len & 3) key[8 + (key_len++)] = '_';  // pad the key to 4*k with '_'.
-    int len = 4 + key_len + val_len;
+    p -> QID = QID;
+    p -> key = key;
+    p -> value = value;
 
-    // prepare the content.
-    printf("QID: %d\n", htons(QID));
-    *((unsigned short *) key) = htons(QID);
-    *((unsigned short *) key + 1) = htons(len);
-    *((unsigned short *) key + 2) = htons(key_len);
-    *((unsigned short *) key + 3) = htons(val_len);
-    *((unsigned int *) (key + 8 + key_len)) = htonl(value);
+    return;
+}
 
-    return key_len + 12;
+
+
+void WordCount(kvPair *p) {
+    static int num___ = 0;
+    printf("seq: %d\n", ++num___);
+    printf("QID: %d, key:%d, value:%d\n\n", p->QID, p->key, p->value);
 }
 
 
 // test the max speed, the switch is able to handle, so best effort.
-void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
+void receiver(int *signal) {
+
     dpdk_init("11111", 0);
 
     cqs_core_affinitize_dpdk(0);
@@ -565,50 +596,44 @@ void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
     // in the parameter.
     // 先整个固定的, 跑通了改一下参数传递.
     src_ip = s2ipv4("10.1.100.1");
-    // dst_ip = s2ipv4("10.1.100.2");
     dst_ip = s2ipv4("10.1.100.2");
     src_port = 1111;
     dst_port = 2222;
     s2macaddr((char*)dst_mac, "3c:fd:fe:bb:ca:81");
 
+    int payload_length = 0;
+    char *buf[1000+5];
 
-    int n = 0;
-    // the file name should be paramiterized.
-    // FILE *file = freopen("../../data/wordCount.txt", "r", stdin);
-    freopen("data/wordCount.txt", "r", stdin);
-    // the format is fixed so 'keys + 8' means 'offset = 8'.
-    for (int i = 0, value; scanf("%s%d", keys + 8, &value) == 2; ++i) {
-        ++n; // count the # of different packets.
-        int len = packetFormat(keys, value, QID);
-        pkt[i] = generate_packet(len, keys);
-    }
-    // fclose(file);
-    printf("%d\n", n);
-    for (int i = 0; i < n; ++i) printf("%d\n", pkt[i] -> length);
+    kvPair p;
+    packet_data_t* data = generate_packet(payload_length, buf);
 
-    uint16_t ip_id = 0;
-    u_int64_t totalByte = 0;
-    for (uint32_t accum = 0; totalByte < 112ll;) {
-        for (int i = 0; i < n; ++i) {
-            ipv4_header_t* ipv4 = pkt[i]->data + sizeof(ethernet_header_t);
-            void* ptr = dpdk_module_func.get_wptr(up_handle, pkt[i], pkt[i]->length);
-            ipv4->id = ntohs(ip_id ++);
-            rte_memcpy(ptr, pkt[i]->data, pkt[i] -> length);
-            // accum += pkt[i] -> length;
-            ++ accum;
-            ++ totalByte;
+    int total = 0;
+    *signal = 1;
+    printf("In receiver UDP: I'm ready!\n");
 
-            if (accum > burst_size) {
-                dpdk_module_func.send_pkts(up_handle);
-                // totalByte += accum;
-                accum = 0;
-            }
+    while(1) { // sniffer the port.
+        int recv_num = dpdk_module_func.recv_pkts(down_handle);
+        total += recv_num;
+        // if (recv_num) printf("In round: %d\n", total);
+        for(int i = 0; i < recv_num; i ++) {
+            dpdk_module_func.get_rptr(down_handle, data, i);
+            ipv4_header_t* data_ipv4 = data->data + sizeof(ethernet_header_t);
+            udp_header_t* data_udp = data->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t);
+            // drop the packet that is not in UDP. 
+            if (data_ipv4 -> proto != 17) continue;
+
+            // 在payload里面需要解析出(key, value), 然后写自定义的stream processing处理程序.
+            packetFormat(&p, data->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t) + sizeof(udp_header_t));
+            WordCount(&p);
+
+            unsigned char* ptr = data->data - RTE_PKTMBUF_HEADROOM - sizeof(struct rte_mbuf);
+            rte_pktmbuf_free((struct rte_mbuf*)ptr);
         }
-        // printf("Bytes sent: %d\n", totalByte);
     }
 
-    for (int i = 0; i < n; ++i) rte_free(pkt[i]);
+    // 对于wordCount来说, 用hash_table来做.
+    // 先不考虑清空的情况.
+    // 可预见的结果是快了至少k倍, 因为包的数量减少了k倍.
 
     return;
-    //return totalByte;
 }

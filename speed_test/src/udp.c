@@ -39,7 +39,7 @@
 /* default port_conf */
 
 const int num_devices_attached = 1;
-const int devices_attached[32] = {1};
+const int devices_attached[32] = {0};  // ethtool -i enp129s0f1 查询pcie的bus端口号.
 uint8_t devices_hwaddr[32][6];
 
 static uint8_t rss_key[] = {
@@ -53,8 +53,8 @@ const struct rte_eth_conf port_conf_default = {
     .rxmode = {
         .mq_mode = ETH_MQ_RX_RSS,
         .split_hdr_size = 0,
-        .max_rx_pkt_len = 1536,
-        .offloads = DEV_RX_OFFLOAD_JUMBO_FRAME
+        .max_rx_pkt_len = 1514,
+        .offloads = 0
     },
     .rx_adv_conf = {
 		.rss_conf = {
@@ -148,10 +148,11 @@ int dpdk_load_module(void) {
         dpdk_info.port_conf[portid].txmode.offloads &= dpdk_info.dev_info[portid].tx_offload_capa;
         // rte_eth_dev_set_ptypes(portid, RTE_PTYPE_UNKNOWN, NULL, 0);
 
-        dpdk_info.nb_rxd[portid] = RTE_TEST_RX_DESC_DEFAULT;
-        dpdk_info.nb_txd[portid] = RTE_TEST_TX_DESC_DEFAULT;
+        dpdk_info.nb_rxd[portid] = RTE_TEST_RX_DESC_DEFAULT >> 3;
+        dpdk_info.nb_txd[portid] = RTE_TEST_TX_DESC_DEFAULT >> 3;
+        // dpdk_info.nb_txd[portid] = RTE_TEST_TX_DESC_DEFAULT;
         rte_eth_dev_adjust_nb_rx_tx_desc(portid, &dpdk_info.nb_rxd[portid], &dpdk_info.nb_txd[portid]);
-        // dpdk_info.port_conf[portid].rx_adv_conf.rss_conf.rss_hf &= dpdk_info.dev_info[portid].r
+        dpdk_info.port_conf[portid].rx_adv_conf.rss_conf.rss_hf &= dpdk_info.dev_info[portid].flow_type_rss_offloads;
         ret = rte_eth_dev_configure(portid, dpdk_info.num_rxq[portid], 1, &dpdk_info.port_conf[portid]);
         if (ret < 0) {
             // LOG_ERR("[IO_DPDK]\tFailed to configure dev\n");
@@ -225,12 +226,15 @@ void* dpdk_init_handle_up(uint16_t nif, uint32_t stack_id) {
     pthread_mutex_lock(&dpdk_info.mutex);
     dpc->portid = portid;
     dpc->txq_id = dpdk_info.idx_txq[portid]++;
+    // printf("TEST: %d\n", dpdk_info.idx_txq[portid]);
+    // printf("\n\nportid:%d\n\n", portid);
 
     struct rte_eth_txconf txq_conf = dpdk_info.dev_info[portid].default_txconf;
-    txq_conf.offloads = dpdk_info.port_conf[portid].txmode.offloads;
+    txq_conf.offloads = 0; //dpdk_info.port_conf[portid].txmode.offloads;
 
     printf("Setting portid = %d\n", portid);
     ret = rte_eth_tx_queue_setup(portid, dpc->txq_id, dpdk_info.nb_txd[portid], rte_eth_dev_socket_id(portid), &txq_conf);
+    printf("\n\n%d %d\n\n", ret, -EINVAL);
     pthread_mutex_unlock(&dpdk_info.mutex);
 
     if (ret < 0)
@@ -516,17 +520,24 @@ int main(int argc,char** argv) {
     dpdk_module_func.load_module();
     
     void* up_handle = dpdk_module_func.init_handle_up(devices_attached[0], 0);
+    printf("F\n");
     void* down_handle = dpdk_module_func.init_handle_down(devices_attached[0]);
 
     for(int i = 0; i < num_devices_attached; i ++) dpdk_module_func.start_iface(devices_attached[i]);
 
     printf("initialized\n");
 
-    src_ip = s2ipv4("10.0.12.9");
-    dst_ip = s2ipv4("10.0.12.10");
-    src_port = 45678;
-    dst_port = 23233;
-    s2macaddr((char*)dst_mac, "08:c0:eb:24:7a:db");
+
+    src_ip = s2ipv4("10.1.100.1");
+    dst_ip = s2ipv4("10.1.100.2");
+    src_port = 1111;
+    dst_port = 2222;
+    s2macaddr((char*)dst_mac, "3c:fd:fe:bb:ca:81");
+    // src_ip = s2ipv4("10.0.12.9");
+    // dst_ip = s2ipv4("10.0.12.10");
+    // src_port = 45678;
+    // dst_port = 23233;
+    // s2macaddr((char*)dst_mac, "08:c0:eb:24:7a:db");
 
     sscanf(argv[1], "%d", &payload_length);
     sscanf(argv[2], "%ld", &bandwidth);

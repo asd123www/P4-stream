@@ -1,6 +1,6 @@
 log/
 data/
-speed_test/build/
+speed_test/build/*
 */__pycache__
 */__pycache__/*
 */*/__pycache__/*

@@ -44,19 +44,20 @@ class Monitor(object):
 		assert (self.p4_conn.recv() == "ready")
 		print("=== connected to switch ===")
 
-		# waiting for sender
-		print("=== connecting to sender ===")
-		self.sd_client = Client((self.conf["sd_conf"]["server_addr"], self.conf["sd_conf"]["server_port"]))
-		self.sd_client.send(queries)
-
+		# we should prepare the receiver first!
 		# connect to emitter
 		print("=== connecting to emitter ===")
 		self.em_conn = Client((self.conf["em_conf"]["server_addr"], self.conf["em_conf"]["server_port"]))
 		self.em_conn.send(em_formats)
-		
-		assert (self.sd_client.recv() == "ready")
 		assert (self.em_conn.recv() == "ready")
-		print("=== connected to emitter ===")
+
+		# waiting for sender
+		print("=== connecting to sender ===")
+		self.sd_client = Client((self.conf["sd_conf"]["server_addr"], self.conf["sd_conf"]["server_port"]))
+		self.sd_client.send(queries)
+		assert (self.sd_client.recv() == "ready")
+
+		print("=== connected to emitter and sender ===")
 
 		
 		while True:
