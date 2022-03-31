@@ -3,7 +3,7 @@ from dis import show_code
 from re import L
 import sys
 import os
-from StaticCode import P4String, p4_code_path, py_code_path
+from .StaticCode import P4String, p4_code_path, py_code_path
 
 
 '''
