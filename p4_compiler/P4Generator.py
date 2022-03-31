@@ -334,7 +334,7 @@ class P4Generator():
         p4_code = ''
         em_formats = []
 
-        self.readStr("p4-code/half.p4")
+        self.readStr("/p4-code/half.p4")
 
         for p4_query in self.PacketStream:
             for operator in p4_query.operators:
@@ -350,7 +350,7 @@ class P4Generator():
 
             em_formats.append({"qid": p4_query.qid, "qname": p4_query.qname, "em_format": self.keyname[-1]})
 
-        self.readStr("p4-code/pipe.p4")
+        self.readStr("/p4-code/pipe.p4")
 
         for line in self.lst: p4_code += line + '\n'
 
