@@ -1,5 +1,8 @@
 # define the static modular.
-
+import os
+import sys
+p4_code_path = os.path.join(os.path.dirname(__file__), "p4-code")
+py_code_path = os.path.join(os.path.dirname(__file__), "py-code")
 class P4String():
 
 
@@ -17,48 +20,48 @@ class P4String():
         tab = chr(9)
 
         # header
-        with open('p4-code/SwitchIngress.p4' ,'r') as f:
+        with open(p4_code_path + '/SwitchIngress.p4' ,'r') as f:
             p4_code = f.read()
 
         # the GET_THRESHOLD() function.
-        with open('p4-code/get_threshold.p4' ,'r') as f:
+        with open(p4_code_path + '/get_threshold.p4' ,'r') as f:
             part_get_threshold = f.read()
         p4_code = p4_code.replace('<part_get_threshold>', part_get_threshold)
 
         prefix = 'bfrt.simple_l3.pipe.SwitchIngress.get_threshold.tbl_get_threshold'
-        with open('py-code/get_threshold.py' ,'r') as f:
+        with open(py_code_path + '/get_threshold.py' ,'r') as f:
             py_get_threshold = f.read()
         py_get_threshold = py_get_threshold.replace('<prefix>', prefix).replace('<qid>', str(qid)).replace('<threshold>', str(10))
         self.generator.sh_code += py_get_threshold
         
         # the drop function
-        with open('p4-code/drop.p4' ,'r') as f:
+        with open(p4_code_path + '/drop.p4' ,'r') as f:
             part_drop = f.read()
         p4_code = p4_code.replace('<part_drop>', part_drop)
 
         # the flag0/1 action
-        with open('p4-code/flag.p4' ,'r') as f:
+        with open(p4_code_path + '/flag.p4' ,'r') as f:
             part_flag = f.read()
         p4_code = p4_code.replace('<part_flag>', part_flag)
 
         # the stflag match action table
-        with open('p4-code/set_flag_action_table.p4' ,'r') as f:
+        with open(p4_code_path + '/set_flag_action_table.p4' ,'r') as f:
             part_set_flag_action_table = f.read()
         p4_code = p4_code.replace('<part_set_flag_action_table>', part_set_flag_action_table)
 
         # the ipv4_forward action
-        with open('p4-code/ipv4_forward.p4' ,'r') as f:
+        with open(p4_code_path + '/ipv4_forward.p4' ,'r') as f:
             part_ipv4_forward = f.read()
         p4_code = p4_code.replace('<part_ipv4_forward>', part_ipv4_forward)
 
         # the ipv4_lpm table
-        with open('p4-code/ipv4_lpm.p4' ,'r') as f:
+        with open(p4_code_path + '/ipv4_lpm.p4' ,'r') as f:
             part_ipv4_lpm = f.read()
         p4_code = p4_code.replace('<part_ipv4_lpm>', part_ipv4_lpm)
 
 
         prefix = 'bfrt.simple_l3.pipe.SwitchIngress.ipv4_lpm'
-        with open('py-code/ipv4_lpm.py' ,'r') as f:
+        with open(py_code_path + '/ipv4_lpm.py' ,'r') as f:
             py_ipv4_lpm = f.read()
         ip_mac_addr  = self.generator.lpmEntries[0]
         py_ipv4_lpm = py_ipv4_lpm.replace('<prefix>', prefix).replace('<params>', 'hdr_ipv4_dst_addr=ip("{}"), hdr_ipv4_dst_addr_p_length={}, dst_addr=mac("{}"), port={}'.format(*ip_mac_addr))
@@ -70,7 +73,7 @@ class P4String():
         p4_code = p4_code.replace('<part_operators>', part_operators)
 
 
-        with open('p4-code/apply.p4' ,'r') as f:
+        with open(p4_code_path + '/apply.p4' ,'r') as f:
             part_apply = f.read()
         # call each function sequentially.
         apply_operators = ''

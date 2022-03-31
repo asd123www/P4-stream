@@ -3,7 +3,7 @@ from dis import show_code
 from re import L
 import sys
 import os
-from StaticCode import P4String
+from StaticCode import P4String, p4_code_path, py_code_path
 
 
 '''
@@ -30,7 +30,7 @@ class MapOperator():
 
     def generate(self):
         name = 'map_' + self.old_key +'_'+ self.new_key +'_'+ self.constant +'_'+ self.transfer[self.operation] +'_'+ str(self.generator.counter)
-        with open('p4-code/operator/map.p4' ,'r') as f:
+        with open(p4_code_path + '/operator/map.p4' ,'r') as f:
             part_map = f.read()
         part_map = part_map.replace('<name>', name)
         part_map = part_map.replace('<operation>', self.generator.findVarStr(self.new_key, 'value') +' = '+ self.constant +' '+ self.operation +' '+ self.generator.findVarStr(self.old_key, 'value') + ';')
@@ -69,7 +69,7 @@ class FilterOperator():
 
     def generate(self):
         name = 'filter_' + self.key +'_'+ self.threshold +'_'+ self.transfer[self.operation] +'_'+ str(self.generator.counter)
-        with open('p4-code/operator/filter.p4' ,'r') as f:
+        with open(p4_code_path + '/operator/filter.p4' ,'r') as f:
             part_filter = f.read()
         part_filter = part_filter.replace('<name>', name)
         part_filter = part_filter.replace('<condition>', self.generator.findVarStr(self.key, 'value') +' '+ self.generator.inverse[self.operation] +' '+ self.threshold)
@@ -110,7 +110,7 @@ class ReduceOperator():
         tab = chr(9)
 
         name = 'reduce_' + self.key +'_'+ self.operation +'_'+ str(self.num) +'_'+ str(self.length) +'_'+ str(self.generator.counter)
-        with open('p4-code/operator/reduce.p4' ,'r') as f:
+        with open(p4_code_path + '/operator/reduce.p4' ,'r') as f:
             part_reduce = f.read()
         part_reduce = part_reduce.replace('<name>', name)
         # define the sketch.
@@ -138,7 +138,7 @@ class ReduceOperator():
             # self.generator.sh_code += '{}.clear()\n'.format(prefix)
             # self.generator.sh_code += '{}.add_with_a{}(c_{} = 0)\n'.format(prefix, i+1, i+1)
             # self.generator.sh_code += '{}.dump()\n\n\n'.format(prefix)
-            with open('p4-code/operator/match_action_table.p4' ,'r') as f:
+            with open(p4_code_path + '/operator/match_action_table.p4' ,'r') as f:
                 match_action_table = f.read()
             match_action_table = match_action_table.replace('<num>', str(i+1))
             part_match_action_table += match_action_table
