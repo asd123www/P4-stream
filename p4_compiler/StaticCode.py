@@ -1,8 +1,8 @@
 # define the static modular.
 import os
 import sys
-p4_code_path = os.path.join(os.path.dirname(__file__), "p4-code")
-py_code_path = os.path.join(os.path.dirname(__file__), "py-code")
+p4_code_path = os.path.join(os.path.dirname(__file__), "/p4-code")
+py_code_path = os.path.join(os.path.dirname(__file__), "/py-code")
 class P4String():
 
 
