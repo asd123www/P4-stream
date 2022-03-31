@@ -1,4 +1,4 @@
-# Install script for directory: /home/bfsde/wzz-p4-stream/p4-stream/speed_test
+# Install script for directory: /home/bfsde/dzm-p4-stream/speed_test
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/bfsde/wzz-p4-stream/p4-stream/speed_test/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/bfsde/dzm-p4-stream/speed_test/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

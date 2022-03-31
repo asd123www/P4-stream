@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/home/bfsde/wzz-p4-stream/p4-stream/speed_test/src/udp.c" "CMakeFiles/udp.dir/src/udp.c.o" "gcc" "CMakeFiles/udp.dir/src/udp.c.o.d"
+  "/home/bfsde/dzm-p4-stream/speed_test/src/udp.c" "CMakeFiles/udp.dir/src/udp.c.o" "gcc" "CMakeFiles/udp.dir/src/udp.c.o.d"
   )
 
 # Targets to which this target links.

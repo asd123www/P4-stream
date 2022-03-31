@@ -1,5 +1,5 @@
 CMakeFiles/tcp.dir/src/tcp.c.o: \
- /home/bfsde/wzz-p4-stream/p4-stream/speed_test/src/tcp.c \
+ /home/bfsde/dzm-p4-stream/speed_test/src/tcp.c \
  /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
@@ -93,10 +93,10 @@ CMakeFiles/tcp.dir/src/tcp.c.o: \
  /usr/include/x86_64-linux-gnu/bits/socket2.h \
  /usr/include/x86_64-linux-gnu/bits/in.h \
  /usr/include/x86_64-linux-gnu/sys/time.h \
- /home/bfsde/wzz-p4-stream/p4-stream/speed_test/include/protocol_headers.h \
- /home/bfsde/wzz-p4-stream/p4-stream/speed_test/include/packet_data.h \
- /home/bfsde/wzz-p4-stream/p4-stream/speed_test/include/io_module.h \
- /home/bfsde/wzz-p4-stream/p4-stream/speed_test/include/packet_data.h \
+ /home/bfsde/dzm-p4-stream/speed_test/include/protocol_headers.h \
+ /home/bfsde/dzm-p4-stream/speed_test/include/packet_data.h \
+ /home/bfsde/dzm-p4-stream/speed_test/include/io_module.h \
+ /home/bfsde/dzm-p4-stream/speed_test/include/packet_data.h \
  /usr/local/include/rte_ethdev.h /usr/local/include/rte_compat.h \
  /usr/local/include/rte_log.h \
  /usr/lib/gcc/x86_64-linux-gnu/9/include/stdbool.h \
