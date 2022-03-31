@@ -110,15 +110,74 @@ control CSum_UPDATE_KEY(
     }
 }
 
-control map_origin_identity_32w0_add_1 (
+
+control reduce_origin_sum_3_4096_1 (
+        inout header_t hdr,
+        inout metadata_t ig_md) {
+
+
+	CSum_UPDATE_KEY(32w0x30243f0b) update_1_0;
+	CSum_UPDATE_KEY(32w0x0f79f523) update_1_1;
+	CSum_UPDATE_KEY(32w0x6b8cb0c5) update_1_2;
+
+
+	action a2() {
+		ig_md.est_2 = ig_md.est_1;
+	}
+	action a3() {
+		ig_md.est_3 = ig_md.est_2;
+	}
+
+
+	table t2 {
+		key = {
+			ig_md.c_2 : exact;
+		}
+		actions = {
+			a2;
+			NoAction;
+		}
+		default_action = NoAction();
+	}
+		table t3 {
+		key = {
+			ig_md.c_3 : exact;
+		}
+		actions = {
+			a3;
+			NoAction;
+		}
+		default_action = NoAction();
+	}
+	
+
+    apply {
+        		hdr.kvs.val_word.val_word_1.data = hdr.kvs.val_word.val_word_1.data;
+        		update_1_0.apply(hdr, ig_md.flag, ig_md.est_1);
+		update_1_1.apply(hdr, ig_md.flag, ig_md.est_2);
+		update_1_2.apply(hdr, ig_md.flag, ig_md.est_3);
+
+        		ig_md.est_12 = ig_md.est_2 - ig_md.est_1;
+		ig_md.c_2 = (bit<1>) (ig_md.est_12 >> 31);
+		t2.apply();
+		ig_md.est_13 = ig_md.est_3 - ig_md.est_2;
+		ig_md.c_3 = (bit<1>) (ig_md.est_13 >> 31);
+		t3.apply();
+
+        		hdr.kvs.val_word.val_word_1.data = ig_md.est_3;
+    }
+}
+
+
+control map_origin_low_bit_32w7_and_2 (
 		inout header_t hdr,
 		inout metadata_t ig_md) {
 	apply {
-		ig_md.value1 = 32w0 + hdr.kvs.val_word.val_word_1.data;
+		ig_md.value1 = 32w7 & hdr.kvs.val_word.val_word_1.data;
 	}
 }
 
-control filter_identity_32w0_ge_2(
+control filter_low_bit_32w0_equal_3(
         inout header_t hdr,
         inout metadata_t ig_md,
         inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md) {
@@ -126,17 +185,17 @@ control filter_identity_32w0_ge_2(
         ig_dprsr_md.drop_ctl = 1;
     }
     apply {
-        if(ig_md.value1 < 32w0)
+        if(ig_md.value1 != 32w0)
             drop();
 
     }
 }
 
-control map_identity_add3_32w3_add_3 (
+control map_origin_reserve_32w0_add_4 (
 		inout header_t hdr,
 		inout metadata_t ig_md) {
 	apply {
-		ig_md.value2 = 32w3 + ig_md.value1;
+		ig_md.value2 = 32w0 + hdr.kvs.val_word.val_word_1.data;
 	}
 }
 
@@ -200,9 +259,10 @@ control SwitchIngress(
 	}
     
 
-	map_origin_identity_32w0_add_1()  func_0;
-	filter_identity_32w0_ge_2()  func_1;
-	map_identity_add3_32w3_add_3()  func_2;
+	reduce_origin_sum_3_4096_1()  func_0;
+	map_origin_low_bit_32w7_and_2()  func_1;
+	filter_low_bit_32w0_equal_3()  func_2;
+	map_origin_reserve_32w0_add_4()  func_3;
 
 
 	apply{
@@ -211,8 +271,9 @@ control SwitchIngress(
 		get_threshold.apply(hdr, ig_md);
 
 		func_0.apply(hdr, ig_md);
-		func_1.apply(hdr, ig_md, ig_dprsr_md);
-		func_2.apply(hdr, ig_md);
+		func_1.apply(hdr, ig_md);
+		func_2.apply(hdr, ig_md, ig_dprsr_md);
+		func_3.apply(hdr, ig_md);
 		hdr.kvs.val_word.val_word_1.data = ig_md.value2;
 
 
