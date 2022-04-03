@@ -78,14 +78,16 @@ class SenderServer(object):
 		lib = ctypes.CDLL(libPath)
 
 		lib.sender.restype = ctypes.c_void_p
-		lib.sender.argtypes = [ctypes.c_wchar_p, ctypes.c_uint64, ctypes.c_uint32]
+		lib.sender.argtypes = [ctypes.c_wchar_p, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32]
 
 		print("no wait for 10 seconds....")
 		time.sleep(10)
 
 		self.send_cnt = 1
-		lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint64(5), ctypes.c_uint32(QID))
-		
+		st = time.time()
+		lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint32(200000000), ctypes.c_uint32(5), ctypes.c_uint32(QID))
+		print("Throughput: {}MB".format((200000000.0)/(time.time()-st)/1024/1024))
+
 		print("Finish sending")
 
 

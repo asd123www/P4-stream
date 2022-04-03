@@ -528,6 +528,8 @@ typedef struct hashTable {
     int* (*query) (u_int32_t* keys, int *values, u_int32_t key);
 }hashTable;
 
+hashTable hashArray;
+
 int *hashQueryPosition(u_int32_t* keys, int *values, u_int32_t key) {
     int i = key%largePrime;
     for(; keys[i] && keys[i] != key; ++i) if (i + 1 == largePrime) i = -1;
@@ -571,18 +573,27 @@ void packetFormat(kvPair *p, char *buf) {
 
 
 void WordCount(kvPair *p) {
-    static int num___ = 0;
-    printf("seq: %d\n", ++num___);
-    printf("QID: %d, key:%d, value:%d\n\n", p->QID, p->key, p->value);
+    int *pos = hashArray.query(hashArray.keys, hashArray.values, p -> key);
+    *pos += p -> value;
+    // printf("seq: %d\n", ++num___);
+    // printf("QID: %d, key:%d, value:%d\n\n", p->QID, p->key, p->value);
 }
 
+inline void WordCountP4(kvPair *p) {
+    int *pos = hashArray.query(hashArray.keys, hashArray.values, p -> key);
+    *pos = p -> value;
+    // printf("seq: %d\n", ++num___);
+    // static num =0;
+    // if ((++num) % 100000 == 0 ) 
+    // printf("QID: %d, key:%d, value:%d\n\n", p->QID, p->key, p->value);
+}
 
 // test the max speed, the switch is able to handle, so best effort.
 void receiver(int *signal) {
 
     dpdk_init("11111", 0);
 
-    cqs_core_affinitize_dpdk(0);
+    cqs_core_affinitize_dpdk(1);
 
     dpdk_module_func.load_module();
 
@@ -608,12 +619,19 @@ void receiver(int *signal) {
     packet_data_t* data = generate_packet(payload_length, buf);
 
     int total = 0;
+
+    int tot =0;
     *signal = 1;
     printf("In receiver UDP: I'm ready!\n");
 
+    double clockTime = clock();
+    hashArray.query = hashQueryPosition;
+
+    int iter = 30;
+
     while(1) { // sniffer the port.
         int recv_num = dpdk_module_func.recv_pkts(down_handle);
-        total += recv_num;
+
         // if (recv_num) printf("In round: %d\n", total);
         for(int i = 0; i < recv_num; i ++) {
             dpdk_module_func.get_rptr(down_handle, data, i);
@@ -621,16 +639,39 @@ void receiver(int *signal) {
             udp_header_t* data_udp = data->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t);
             // drop the packet that is not in UDP. 
             if (data_ipv4 -> proto != 17) continue;
+            ++total, ++tot; // the # of packets.
+            // printf("length %d\n", strlen(data -> data));
+
+            // for(int i= 0 ; i < 50; ++i) printf("%d ", data->data[i]);
+            // puts(""); 
+
 
             // 在payload里面需要解析出(key, value), 然后写自定义的stream processing处理程序.
-            packetFormat(&p, data->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t) + sizeof(udp_header_t));
-            WordCount(&p);
+            // packetFormat(&p, data->data + sizeof(ethernet_header_t) + sizeof(ipv4_header_t) + sizeof(udp_header_t));
+            // WordCount(&p);
 
             unsigned char* ptr = data->data - RTE_PKTMBUF_HEADROOM - sizeof(struct rte_mbuf);
             rte_pktmbuf_free((struct rte_mbuf*)ptr);
         }
+
+        clock_t newTime = clock();
+        if (newTime - clockTime > CLOCKS_PER_SEC) {
+            -- iter;
+            if (iter == 0) break;
+            if (total) {
+                printf("packet per second: %f\n",total/(newTime - clockTime)*CLOCKS_PER_SEC);
+                printf("total: %d\n\n", tot);
+            }
+            total = 0;
+            clockTime = newTime;
+        }
     }
 
+    printf("\nResult: %d\n", tot);
+    for (int *i = hashArray.values, j = 0; j < largePrime; ++j,++i) if (*i) {
+        printf("%d ", *i);
+    }
+    puts("");
     // 对于wordCount来说, 用hash_table来做.
     // 先不考虑清空的情况.
     // 可预见的结果是快了至少k倍, 因为包的数量减少了k倍.
