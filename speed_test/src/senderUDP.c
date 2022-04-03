@@ -536,7 +536,6 @@ int packetFormat(char *key, int value, int QID) {
     int len = 4 + key_len + val_len;
 
     // prepare the content.
-    printf("QID: %d\n", htons(QID));
     *((unsigned short *) key) = htons(QID);
     *((unsigned short *) key + 1) = htons(len);
     *((unsigned short *) key + 2) = htons(key_len);
@@ -548,10 +547,10 @@ int packetFormat(char *key, int value, int QID) {
 
 
 // test the max speed, the switch is able to handle, so best effort.
-void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
-    dpdk_init("11111", 0);
+void sender(char *appName, uint32_t throughput, u_int32_t burst_size, u_int32_t QID) {
+    dpdk_init("00000000000011111", 0); //11111 -> 0,1,2,3,4 core可用
 
-    cqs_core_affinitize_dpdk(0);
+    cqs_core_affinitize_dpdk(36); //这个线程在哪个以上可用的core上跑.
 
     dpdk_module_func.load_module();
 
@@ -569,7 +568,7 @@ void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
     dst_ip = s2ipv4("10.1.100.2");
     src_port = 1111;
     dst_port = 2222;
-    s2macaddr((char*)dst_mac, "3c:fd:fe:bb:ca:81");
+    s2macaddr((char*)dst_mac, "3c:fd:fe:bb:ca:81"); // 60 253 254 187 202 129
 
 
     int n = 0;
@@ -583,12 +582,14 @@ void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
         pkt[i] = generate_packet(len, keys);
     }
     // fclose(file);
-    printf("%d\n", n);
-    for (int i = 0; i < n; ++i) printf("%d\n", pkt[i] -> length);
+    // printf("%d\n", n);
+    // for (int i = 0; i < n; ++i) printf("%d\n", pkt[i] -> length);
+
+    clock_t clockTime = clock();
 
     uint16_t ip_id = 0;
     u_int64_t totalByte = 0;
-    for (uint32_t accum = 0; totalByte < 112ll;) {
+    for (uint32_t accum = 0; totalByte < throughput;) {
         for (int i = 0; i < n; ++i) {
             ipv4_header_t* ipv4 = pkt[i]->data + sizeof(ethernet_header_t);
             void* ptr = dpdk_module_func.get_wptr(up_handle, pkt[i], pkt[i]->length);
@@ -598,7 +599,7 @@ void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
             ++ accum;
             ++ totalByte;
 
-            if (accum > burst_size) {
+            if (accum >= burst_size || (totalByte >= throughput && i == n-1)) {
                 dpdk_module_func.send_pkts(up_handle);
                 // totalByte += accum;
                 accum = 0;
@@ -606,6 +607,10 @@ void sender(char *appName, u_int32_t burst_size, u_int32_t QID) {
         }
         // printf("Bytes sent: %d\n", totalByte);
     }
+
+    printf("Throughput: %.3f\n", 1.0 * totalByte / (clock() - clockTime) * CLOCKS_PER_SEC);
+
+    printf("totalByte: %d\n", totalByte);
 
     for (int i = 0; i < n; ++i) rte_free(pkt[i]);
 
