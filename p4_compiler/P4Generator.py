@@ -34,6 +34,9 @@ class MapOperator():
             part_map = f.read()
         part_map = part_map.replace('<name>', name)
         part_map = part_map.replace('<operation>', self.generator.findVarStr(self.new_key, 'value') +' = '+ self.constant +' '+ self.operation +' '+ self.generator.findVarStr(self.old_key, 'value') + ';')
+        part_map = part_map.replace('<SaveValueToHeader>', 'hdr.kvs.val_word.val_word_'+str(len(self.generator.keyname))+'.data = ' + self.generator.findVarStr(self.new_key, 'value') + ';')
+        part_map = part_map.replace('<SetHeaderToValid>', 'hdr.kvs.val_word.val_word_'+str(len(self.generator.keyname))+'.setValid();')
+        
         self.generator.lst.append(part_map)
         return name
         # self.code["apply"].append('// map ' + old_key +' '+ new_key +' '+ constant +' '+ operation) # the notation.
@@ -144,6 +147,11 @@ class ReduceOperator():
             part_match_action_table += match_action_table
         part_reduce = part_reduce.replace('<match_action_table>', part_match_action_table)
         
+        # 将没用的header中的value位置为Invalid.
+        setInValidCode = ''
+        for i in range(2, len(self.generator.keyname) + 1):
+            setInValidCode += tab*2 + 'hdr.kvs.val_word.val_word_' + str(i) + '.setInvalid();\n'
+        part_reduce = part_reduce.replace('<SetHeaderValueInvalid>', setInValidCode)
 
         # drop other keys.
         # 1. copy the value to header.
@@ -173,6 +181,8 @@ class ReduceOperator():
         
         # you should restore the result in header.value
         part_reduce = part_reduce.replace('<restore_result>', tab*2+self.generator.findVarStr('origin', 'value')+' = ig_md.est_'+str(self.num)+';')
+
+
         self.generator.lst.append(part_reduce)
 
         return name

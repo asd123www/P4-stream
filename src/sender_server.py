@@ -85,8 +85,8 @@ class SenderServer(object):
 
 		self.send_cnt = 1
 		st = time.time()
-		lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint32(200000000), ctypes.c_uint32(5), ctypes.c_uint32(QID))
-		print("Throughput: {}MB".format((200000000.0)/(time.time()-st)/1024/1024))
+		lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint32(100), ctypes.c_uint32(5), ctypes.c_uint32(QID))
+		print("Throughput: {}MB".format((100.0)/(time.time()-st)/1024/1024))
 
 		print("Finish sending")
 

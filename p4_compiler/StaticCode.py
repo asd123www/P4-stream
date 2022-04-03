@@ -89,13 +89,18 @@ class P4String():
 		# func_1.apply(hdr, ig_md, ig_dprsr_md);
 		# func_2.apply(hdr, ig_md);
 		# func_3.apply(hdr, ig_md);
+
         '''
         if multiple values, then choose the last one.
+
+        更改语义操作后, 保留所有中间的value, 因此不需要只保存最后一个value.
         '''
-        if len(self.generator.keyname) > 1:
-            old_key = self.generator.keyname[0]
-            new_key = self.generator.keyname[-1]
-            apply_operators += tab*2 + self.generator.findVarStr(old_key, 'value') +' = '+ self.generator.findVarStr(new_key, 'value') +';\n'
+        # if len(self.generator.keyname) > 1:
+        #     old_key = self.generator.keyname[0]
+        #     new_key = self.generator.keyname[-1]
+        #     apply_operators += tab*2 + self.generator.findVarStr(old_key, 'value') +' = '+ self.generator.findVarStr(new_key, 'value') +';\n'
+        
+        
         part_apply = part_apply.replace('<apply_operators>', apply_operators)
         p4_code = p4_code.replace('<part_apply>', part_apply)
         self.generator.lst.append(p4_code)

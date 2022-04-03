@@ -3,5 +3,7 @@ control <name> (
 		inout metadata_t ig_md) {
 	apply {
 		<operation>
+		<SaveValueToHeader>
+		<SetHeaderToValid>
 	}
 }
