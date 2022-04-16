@@ -41,7 +41,6 @@ class MapOperator():
                 part_map = part_map.replace('<operation>', self.generator.findVarStr(self.new_key, 'value') +' = '+ self.constant + ';')
 
 
-        part_map = part_map.replace('<SaveValueToHeader>', 'hdr.kvs.val_word.val_word_'+str(len(self.generator.keyname))+'.data = ' + self.generator.findVarStr(self.new_key, 'value') + ';')
         part_map = part_map.replace('<SetHeaderToValid>', 'hdr.kvs.val_word.val_word_'+str(len(self.generator.keyname))+'.setValid();')
         
         self.generator.lst.append(part_map)

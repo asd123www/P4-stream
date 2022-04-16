@@ -10,8 +10,9 @@ qconf = {
 }
 
 queries = [PacketStream(1, 'WordCount', qconf)
-			.Reduce('origin', 'sum', 3, 4096)
-        	.Map('origin', 'low_bit', '32w7', '&')
+			.Map('origin', 'useless', '32w10', "=")
+			.Reduce('useless', 'sum', 3, 4096)
+        	.Map('useless', 'low_bit', '32w7', '&')
 			.Filter('low_bit', '32w0', '==')
 			]
 

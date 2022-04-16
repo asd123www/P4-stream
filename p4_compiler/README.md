@@ -48,9 +48,11 @@ Reduce('origin', 'sum', 3, 4096)
 
 `参数4`指定使用的`sketch`的宽度.
 
-<span style="color:red;"> 问题1: 目前reduce会只保留一个value结果, 这样做不了count, 需要修改.</span>
 
-<span style="color:red;"> 问题2: 用户指定与autoConfig矛盾, 之后需要去掉.</span>
+<span style="color:red;">问题1: 目前reduce会只保留一个value结果, 这样做不了count, 需要修改.</span>
+
+
+<span style="color:red;">问题2: 用户指定与autoConfig矛盾, 之后需要去掉.</span>
 
 
 

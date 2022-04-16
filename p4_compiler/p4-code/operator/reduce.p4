@@ -11,11 +11,9 @@ control <name> (
 <match_action_table>
 
     apply {
-<copy_the_value_to_header>
 <apply_content>
 <judge_variable>
 <restore_result>
-<SetHeaderValueInvalid>
     }
 }
 

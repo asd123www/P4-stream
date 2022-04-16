@@ -26,6 +26,7 @@ class ReduceOperator():
     
     def generate(self):
         tab = chr(9)
+        idx = self.generator.keyname.index(self.key)
 
         name = 'reduce_' + self.key +'_'+ self.operation +'_'+ str(self.num) +'_'+ str(self.length) +'_'+ str(self.generator.counter)
         with open(p4_code_path + '/operator/reduce.p4' ,'r') as f:
@@ -35,7 +36,7 @@ class ReduceOperator():
         part_define_sketch = ''
         seed = ['32w0x30243f0b', '32w0x0f79f523', '32w0x6b8cb0c5', '32w0x00390fc3', '32w0x298ac673']
         for i in range(self.num):
-            part_define_sketch = part_define_sketch + tab + self.sketchName[self.operation] +'('+ seed[i] +') update_'+str(self.generator.counter)+'_'+str(i)+';\n'
+            part_define_sketch = part_define_sketch + tab + self.sketchName[self.operation] + str(idx+1) +'('+ seed[i] +') update_'+str(self.generator.counter)+'_'+str(i)+';\n'
     
         part_reduce = part_reduce.replace('<define_sketch>', part_define_sketch)
         # define the action: judge the want and overlap the useless.
@@ -62,17 +63,19 @@ class ReduceOperator():
             part_match_action_table += match_action_table
         part_reduce = part_reduce.replace('<match_action_table>', part_match_action_table)
         
+        '''
         # 将没用的header中的value位置为Invalid.
         setInValidCode = ''
         for i in range(2, len(self.generator.keyname) + 1):
             setInValidCode += tab*2 + 'hdr.kvs.val_word.val_word_' + str(i) + '.setInvalid();\n'
         part_reduce = part_reduce.replace('<SetHeaderValueInvalid>', setInValidCode)
-
+        
+        # we shouldn't drop the key.
         # drop other keys.
         # 1. copy the value to header.
         part_reduce = part_reduce.replace('<copy_the_value_to_header>', tab*2+self.generator.findVarStr('origin', 'value')+' = '+self.generator.findVarStr(self.key, 'value')+';')
         # 2. drop other keys.
-        self.generator.keyname = ['origin']
+        self.generator.keyname = ['origin']'''
 
         # fill the apply content.
         part_apply_content = ''
@@ -95,7 +98,7 @@ class ReduceOperator():
         part_reduce = part_reduce.replace('<judge_variable>', part_judge_variable)
         
         # you should restore the result in header.value
-        part_reduce = part_reduce.replace('<restore_result>', tab*2+self.generator.findVarStr('origin', 'value')+' = ig_md.est_'+str(self.num)+';')
+        part_reduce = part_reduce.replace('<restore_result>', tab*2+self.generator.findVarStr(self.key, 'value')+' = ig_md.est_'+str(self.num)+';')
 
 
         self.generator.lst.append(part_reduce)

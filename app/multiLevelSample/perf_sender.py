@@ -6,8 +6,7 @@ from config.config_hw import sd_conf
 server = SenderServer(sd_conf)
 
 dataPath = "./data/wordCount.txt"
-# words = ["alice", "bob", "carol", "dave", "eve", "abcdefghijklmn", "o"]
-words = ["alice", "carol"]
+words = ["alice", "bob", "carol", "dave", "eve", "abcdefghijklmn", "o"]
 # SEND_ITER = 100 meaningless.
 
 # prepare the data to send.

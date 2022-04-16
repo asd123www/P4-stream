@@ -6,7 +6,6 @@ control <name> (
 
 	apply {
 		<operation>
-		<SaveValueToHeader>
 		<SetHeaderToValid>
 	}
 }

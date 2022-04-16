@@ -34,18 +34,7 @@ class P4Generator():
     # find the variable in P4.
     def findVarStr(self, key, type):
         idx = self.keyname.index(key)
-
-        ans = ''
-        if (idx == 0):
-            ans += 'hdr.kvs.val_word.val_word_1.data'
-            # ans += 'hdr.kvs.val_word.' + type # we fix the bits to 32, so only one value.
-            # hdr.kvs.val_word.val_word_1.data = ig_md.est_3;
-        else:
-            # if in metadata_t, then the idx is the corresponding value index.
-            # there is no key in metadata_t.
-            ans += 'ig_md.' + type + str(idx)
-        
-        return ans
+        return 'hdr.kvs.val_word.val_word_' + str(idx+1) +'.data'
     
 
     def Map(self, old_key, new_key, constant, operation):
@@ -165,7 +154,7 @@ class P4Generator():
         em_formats = []
 
         self.readStr("/p4-code/half.p4")
-
+        
         for p4_query in self.PacketStream:
             for operator in p4_query.operators:
                 # print(operator[0])
