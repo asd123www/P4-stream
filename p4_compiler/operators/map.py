@@ -19,7 +19,7 @@ class MapOperator():
         self.new_key = new_key
         self.constant = constant
         self.operation = operation
-        self.transfer = {'+':'add', '-':'sub', '*':'mul', '&':'and', '|':'or', '^':'xor', '=':'eq'}
+        self.transfer = {'+':'add', '-':'sub', '&':'and', '|':'or', '^':'xor', '=':'eq'}
 
         return
 
@@ -28,7 +28,19 @@ class MapOperator():
         with open(p4_code_path + '/operator/map.p4' ,'r') as f:
             part_map = f.read()
         part_map = part_map.replace('<name>', name)
-        part_map = part_map.replace('<operation>', self.generator.findVarStr(self.new_key, 'value') +' = '+ self.constant +' '+ self.operation +' '+ self.generator.findVarStr(self.old_key, 'value') + ';')
+
+        if self.operation != '=':
+            part_map = part_map.replace('<RandomGenerator>', '')
+            part_map = part_map.replace('<operation>', self.generator.findVarStr(self.new_key, 'value') +' = '+ self.constant +' '+ self.operation +' '+ self.generator.findVarStr(self.old_key, 'value') + ';')
+        else:
+            if self.constant == 'random':
+                part_map = part_map.replace('<RandomGenerator>', 'Random<bit<32>>() rnd;')
+                part_map = part_map.replace('<operation>', self.generator.findVarStr(self.new_key, 'value') +' = rnd.get();')
+            else:
+                part_map = part_map.replace('<RandomGenerator>', '')
+                part_map = part_map.replace('<operation>', self.generator.findVarStr(self.new_key, 'value') +' = '+ self.constant + ';')
+
+
         part_map = part_map.replace('<SaveValueToHeader>', 'hdr.kvs.val_word.val_word_'+str(len(self.generator.keyname))+'.data = ' + self.generator.findVarStr(self.new_key, 'value') + ';')
         part_map = part_map.replace('<SetHeaderToValid>', 'hdr.kvs.val_word.val_word_'+str(len(self.generator.keyname))+'.setValid();')
         

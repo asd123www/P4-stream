@@ -158,7 +158,7 @@ control JoinOperator(
 
         arrayID.apply(hdr, ig_md);
 
-        if (ig_md.InPlace == ig_md.hash2) { // hit, 进行操作.
+        if (ig_md.InPlace == ig_md.hash2) { // hit, operate.
             arrayStage.apply(hdr, ig_md);// get the stage number.
 
             // bring out the info.
@@ -170,10 +170,8 @@ control JoinOperator(
             array6.apply(hdr.kvs.val_word.val_word_1, hdr.kvs.val_word.val_word_7, ig_md);
             array7.apply(hdr.kvs.val_word.val_word_1, hdr.kvs.val_word.val_word_8, ig_md);
 
-            hdr.num.data = ig_md.num;
-            hdr.num.setValid();
             if (ig_md.num != 8w0) // we stored the value, just drop the pkt.
-                ig_dprsr_md.drop_ctl = 1;
+               ig_dprsr_md.drop_ctl = 1;
         }
     }
 }
@@ -216,8 +214,8 @@ control SwitchIngress(
     JoinOperator() func_1;
 
     apply {
-
-        func_1.apply(hdr, ig_md, ig_dprsr_md);
+        // there is some disturbing pkts!!!
+        if (hdr.udp.isValid()) func_1.apply(hdr, ig_md, ig_dprsr_md);
 
         ipv4_lpm.apply();
         

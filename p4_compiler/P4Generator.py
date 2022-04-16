@@ -194,10 +194,3 @@ class P4Generator():
         #     file.write(p4_code)
 
         return p4_code, self.sh_code, em_formats
-"""
-a = P4Generator([{"qid":0, "qname":"test", "em_format":"origin"}]).solve()
-with open('test2.p4', 'w') as f:
-    f.write(a[0])
-with open('test2.py', 'w') as f:
-    f.write(a[1])
-"""
