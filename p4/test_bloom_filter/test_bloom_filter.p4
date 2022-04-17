@@ -8,9 +8,9 @@
 #include "headers.p4"
 #include "util.p4"
 
-#define BLOOM_FILTER_ENTRIES 1024
-
-struct metadata_t {
+#define BLOOM_FILTER_ENTRIES 1024 // 单个bloom filter 的大小
+//对应 bloom filter 下标字长为 10，在下面改
+struct metadata_t { //metadata，和之前的cmsketch一样
 	bit<16> sampling_hash_value;
     bit<10> level;
     bit<16> base;
@@ -73,10 +73,10 @@ struct metadata_t {
 #include "API_threshold.p4"
 
 
-control BF_UPDATE_KEY(
+control BF_UPDATE_KEY( //一个 bloom filter 的control，其实和cm基本类似
   inout header_t hdr, inout metadata_t ig_md)(bit<32> polynomial1, bit<32> polynomial2, bit<32> polynomial3)
 {
-
+    //这个是3个哈希函数，对应循环使用的两个数组，共6个哈希函数
     CRCPolynomial<bit<32>>(polynomial1, true,  false, false, 32w0xFFFFFFFF,  32w0xFFFFFFFF ) poly11;
     CRCPolynomial<bit<32>>(polynomial2, true,  false, false, 32w0xFFFFFFFF,  32w0xFFFFFFFF ) poly12;
     CRCPolynomial<bit<32>>(polynomial3, true,  false, false, 32w0xFFFFFFFF,  32w0xFFFFFFFF ) poly13;
@@ -89,39 +89,17 @@ control BF_UPDATE_KEY(
     Hash<bit<10>>(HashAlgorithm_t.CRC32, poly21) hash21;
     Hash<bit<10>>(HashAlgorithm_t.CRC32, poly22) hash22;
     Hash<bit<10>>(HashAlgorithm_t.CRC32, poly23) hash23;  
+    //循环使用的两个table
     Register<bit<32>, bit<10>>(BLOOM_FILTER_ENTRIES) bf_table1;
     Register<bit<32>, bit<10>>(BLOOM_FILTER_ENTRIES) bf_table2;
-    RegisterAction<bit<32>, bit<10>, bit<32>>(bf_table1) bf_action11 = {
+    //每个table的action
+    RegisterAction<bit<32>, bit<10>, bit<32>>(bf_table1) bf_action1 = {
         void apply(inout bit<32> register_data, out bit<32> result) {
             register_data = register_data + hdr.kvs.val_word.val_word_1.data;
             result = register_data;
         }
     };
-    RegisterAction<bit<32>, bit<10>, bit<32>>(bf_table1) bf_action12 = {
-        void apply(inout bit<32> register_data, out bit<32> result) {
-            register_data = register_data + hdr.kvs.val_word.val_word_1.data;
-            result = register_data;
-        }
-    };
-    RegisterAction<bit<32>, bit<10>, bit<32>>(bf_table1) bf_action13 = {
-        void apply(inout bit<32> register_data, out bit<32> result) {
-            register_data = register_data + hdr.kvs.val_word.val_word_1.data;
-            result = register_data;
-        }
-    };
-    RegisterAction<bit<32>, bit<10>, bit<32>>(bf_table2) bf_action21 = {
-        void apply(inout bit<32> register_data, out bit<32> result) {
-            register_data = register_data + hdr.kvs.val_word.val_word_1.data;
-            result = register_data;
-        }
-    };
-    RegisterAction<bit<32>, bit<10>, bit<32>>(bf_table2) bf_action22 = {
-        void apply(inout bit<32> register_data, out bit<32> result) {
-            register_data = register_data + hdr.kvs.val_word.val_word_1.data;
-            result = register_data;
-        }
-    };
-    RegisterAction<bit<32>, bit<10>, bit<32>>(bf_table2) bf_action23 = {
+    RegisterAction<bit<32>, bit<10>, bit<32>>(bf_table2) bf_action2 = {
         void apply(inout bit<32> register_data, out bit<32> result) {
             register_data = register_data + hdr.kvs.val_word.val_word_1.data;
             result = register_data;
@@ -130,13 +108,15 @@ control BF_UPDATE_KEY(
     apply {
         @atomic{
             if(ig_md.flag == 1){
-                ig_md.est_1 = bf_action11.execute(hash11.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data}));
-                ig_md.est_2 = bf_action11.execute(hash12.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data}));
-                ig_md.est_3 = bf_action11.execute(hash13.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data}));
+                //更新3次，分别用每个哈希值作为下标
+                ig_md.est_1 = bf_action1.execute(hash11.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data}));
+                ig_md.est_2 = bf_action1.execute(hash12.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data}));
+                ig_md.est_3 = bf_action1.execute(hash13.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data}));
             }else{
-                ig_md.est_1 = bf_action21.execute(hash21.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data}));
-                ig_md.est_2 = bf_action21.execute(hash22.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data}));
-                ig_md.est_3 = bf_action21.execute(hash23.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data}));
+                //更新3次，分别用每个哈希值作为下标
+                ig_md.est_1 = bf_action2.execute(hash21.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data}));
+                ig_md.est_2 = bf_action2.execute(hash22.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data}));
+                ig_md.est_3 = bf_action2.execute(hash23.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data}));
             }
         }
     }
@@ -145,7 +125,7 @@ control BF_UPDATE_KEY(
 
 
 
-
+//主体部分和CM差不多，就是这里只用了一个bloom filter
 control SwitchIngress(
         inout header_t hdr,
         inout metadata_t ig_md,
