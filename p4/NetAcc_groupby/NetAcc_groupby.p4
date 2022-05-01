@@ -15,87 +15,88 @@ struct metadata_t {
     bit<32> hash1;
     bit<32> hash2;
 
-    bit<32> ret1;
-    bit<32> ret2;
-
-    bit<8> is_equal0;
-    bit<8> is_equal1;
+    bit<1> present;
 }
 
 #include "parser.p4"
 
 
-control CacheArray(
+control BloomFilter(
         inout header_t hdr, 
-        inout metadata_t ig_md)(bit<1> xor) {
+        inout metadata_t ig_md) {
     
     // cs_table1 & cs_table2 should have the same length.
-    Register<bit<32>, bit<12>>(32w4096, 0) cs_table; // initial value is 0.
+    Register<bit<1>, bit<12>>(32w4096, 0) cs_table; // initial value is 0.
 
-    RegisterAction<bit<32>, bit<12>, bit<32>>(cs_table) cs_action = {
-        void apply(inout bit<32> register_data, out bit<32> result) {
+    RegisterAction<bit<1>, bit<12>, bit<1>>(cs_table) cs_action = {
+        void apply(inout bit<1> register_data, out bit<1> result) {
             result = register_data;
-
-            if (xor == 1w0) 
-                register_data = ig_md.ret1;
-            else
-                register_data = ig_md.ret2;
+            register_data = 1w1;
         }
     };
 
     apply {
-        if (xor == 1w0) {
-            ig_md.ret1 = cs_action.execute(ig_md.hash_idx);
-            if (ig_md.ret1 == ig_md.hash1) ig_md.is_equal0 = 8w1;
-        }
-        else {
-            ig_md.ret2 = cs_action.execute(ig_md.hash_idx);
-            if (ig_md.ret2 == ig_md.hash2) ig_md.is_equal1 = 8w1;
-        }
+        ig_md.present = cs_action.execute(ig_md.hash_idx);
     }
 }
 
-control CacheLine(
+control IdentityArray(
         inout header_t hdr, 
-        inout metadata_t ig_md,
-        inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md) {
+        inout metadata_t ig_md) {
 
-    action drop() {
-        ig_dprsr_md.drop_ctl = 1;
-    }
+    Register<bit<32>, bit<12>>(32w4096, 0) cs_table; // initial value is 0.
 
-    action apply_assign() {
-        ig_md.is_equal0 = 8w0;
-        ig_md.is_equal1 = 8w0;
-    }
-
-
-    table tbl_assign {
-        actions = {
-            apply_assign;
-        }
-        const default_action = apply_assign();
-        size = 512;
-    }
-
-    CacheArray(1w0) array1;
-    CacheArray(1w1) array2;
-
-    apply {
-        if (ig_dprsr_md.drop_ctl == 0) {
-            tbl_assign.apply();
-
-            array1.apply(hdr, ig_md);
-            array2.apply(hdr, ig_md);
-
-            if (ig_md.is_equal0 == 8w1 && ig_md.is_equal1 == 8w1) {// && ig_md.ret2 == ig_md.hash2) { // hit, drop the pkt.
-                drop();
+    // How can double 32-bit fit into one ALU?
+    RegisterAction<bit<32>, bit<12>, bit<1>>(cs_table) cs_action = {
+        void apply(inout bit<32> register_data, out bit<1> result) {
+            if (ig_md.present == 1w0) { // empty.
+                register_data = ig_md.hash1;
+                result = 1w1;
+            }
+            else {
+                if (ig_md.hash1 == register_data) { // if fingerprint matches.
+                    result = 1w1;
+                }
+                else {
+                    result = 1w0;
+                }
             }
         }
+    };
+
+    apply {
+        ig_md.present = cs_action.execute(ig_md.hash_idx);
     }
 }
 
-control DistinctOperator(
+
+control SummaryArray(
+        inout header_t hdr,
+        inout metadata_t ig_md,
+        inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md) {
+    
+    // cs_table1 & cs_table2 should have the same length.
+    Register<bit<32>, bit<12>>(32w4096, 0) cs_table; // initial value is 0.
+
+    RegisterAction<bit<32>, bit<12>, bit<3>>(cs_table) cs_action = {
+        void apply(inout bit<32> register_data, out bit<3> result) {
+            if (ig_md.present == 1w1) {
+                register_data = register_data + hdr.kvs.val_word.val_word_1.data;
+                result = 1;
+            }
+            else {
+                result = 0;
+            }
+        }
+    };
+
+    apply { // save the resource.
+        ig_dprsr_md.drop_ctl = cs_action.execute(ig_md.hash_idx);
+    }
+}
+
+
+control NetAcc_GroupByOperator(
         inout header_t hdr, 
         inout metadata_t ig_md,
         inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md) {
@@ -108,7 +109,8 @@ control DistinctOperator(
     Hash<bit<32>>(HashAlgorithm_t.CRC32, poly2) hash2;
 
     action apply_hash0() {
-        ig_md.hash_idx = hash0.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data});
+        ig_md.hash_idx = 0;
+        // ig_md.hash_idx = hash0.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data});
     }
 
     action apply_hash1() {
@@ -142,38 +144,19 @@ control DistinctOperator(
         const default_action = apply_hash2();
         size = 512;
     }
-
-    action apply_assign() {
-        ig_md.ret1 = ig_md.hash1;
-        ig_md.ret2 = ig_md.hash2;
-    }
-
-
-    table tbl_assign {
-        actions = {
-            apply_assign;
-        }
-        const default_action = apply_assign();
-        size = 512;
-    }
-
-
-    // Cache依赖性太强了, 开四个就15个stage了.
-    CacheLine() array1;
-    CacheLine() array2;
-    CacheLine() array3;
-    // CacheLine() array4;
+    
+    BloomFilter() flag;
+    IdentityArray() id;
+    SummaryArray() sum;
 
     apply {
         tbl_hash0.apply();
         tbl_hash1.apply();
-        tbl_hash2.apply();
+        // tbl_hash2.apply();
 
-        tbl_assign.apply();
-        array1.apply(hdr, ig_md, ig_dprsr_md);
-        array2.apply(hdr, ig_md, ig_dprsr_md);
-        array3.apply(hdr, ig_md, ig_dprsr_md);
-        // array4.apply(hdr, ig_md, ig_dprsr_md);
+        flag.apply(hdr, ig_md);
+        id.apply(hdr, ig_md);
+        sum.apply(hdr, ig_md, ig_dprsr_md);
     }
 }
 
@@ -194,7 +177,7 @@ control SwitchIngress(
     }
     
     action drop() {
-        ig_dprsr_md.drop_ctl = 1;
+        ig_dprsr_md.drop_ctl = 1; // bit<3>
     }
 
     table ipv4_lpm {
@@ -210,7 +193,7 @@ control SwitchIngress(
         default_action = NoAction;
     }
 
-    DistinctOperator() func_1;
+    NetAcc_GroupByOperator() func_1;
 
     apply {
         // there is some disturbing pkts!!!
