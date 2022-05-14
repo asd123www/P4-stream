@@ -1,6 +1,0 @@
-/home/bfsde/dzm-p4-stream/speed_test/build/CMakeFiles/edit_cache.dir
-/home/bfsde/dzm-p4-stream/speed_test/build/CMakeFiles/tcp.dir
-/home/bfsde/dzm-p4-stream/speed_test/build/CMakeFiles/udp.dir
-/home/bfsde/dzm-p4-stream/speed_test/build/CMakeFiles/Receiver.dir
-/home/bfsde/dzm-p4-stream/speed_test/build/CMakeFiles/rebuild_cache.dir
-/home/bfsde/dzm-p4-stream/speed_test/build/CMakeFiles/Sender.dir
