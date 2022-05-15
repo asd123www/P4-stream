@@ -31,8 +31,13 @@ Runtime(conf, [queries])# 以这些应用运行
 ```
 
 
-
-
+## 算子
+| |Cheetah |NetAccel | SketchSteam |
+| -- | --- | --- | ----|
+|Distinct | Cache | | BloomFilter|
+| Reduce (count) | CountMin | groupby(sum) | CountMin|
+| join  | 2*pkts + BloomFilter |  | Join Chain|
+| groupby(min/max)  | Min/Max Cache | | Min-Max Sketch |
 
 # 硬件版本
 
