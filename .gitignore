@@ -1,9 +1,10 @@
 log/
-data/
-speed_test/build/
+/data
+/speed_test/build/
 */__pycache__
 */__pycache__/*
 */*/__pycache__/*
 p4/tmp_*
 *.pyc
 *.swp
+*.o

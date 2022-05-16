@@ -30,7 +30,8 @@ class P4Server(object):
 		with open(self.sh_file, "w") as f:
 			f.write(sh_code)
 		
-		with open(os.path.join(self.conf["p4_path"], "simple_l3", "shell_hw.txt"), "r") as f:
+		# 配置好的端口文件, 直接读之前的即可.
+		with open(os.path.join(self.conf["p4_path"], "simple_l3_zcq", "shell_hw.txt"), "r") as f:
 			sh_hw = f.read()
 		
 		with open(os.path.join(self.path, "shell_hw.txt"), "w") as f:

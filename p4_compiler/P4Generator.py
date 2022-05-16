@@ -133,20 +133,6 @@ class P4Generator():
         return
     
     def solve(self):
-        # the wordCount instance.
-        '''
-        self.Map('origin', 'identity', '32w0', '+')
-        self.Filter('identity', '32w0', '>=')
-        self.Map('identity', 'add3', '32w3', '+')
-        self.P4String.generate()
-
-        # you need to change the path!
-        self.printStr("/home/bfsde/wzz-p4-stream/p4-stream/p4_compiler/test.p4")
-        '''
-        
-        # sudo PYTHONPATH=$PWD python3 app/wordcount/monitor.py
-		# p4_code, sh_code, em_formats = "", "", [{"qid":0, "qname":"test", "em_format":"origin"}]
-
         # only support one query now.
 
         # print (type(self.PacketStream))
