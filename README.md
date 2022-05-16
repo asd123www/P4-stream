@@ -39,6 +39,87 @@ Runtime(conf, [queries])# 以这些应用运行
 | join  | 2*pkts + BloomFilter |  | Join Chain|
 | groupby(min/max)  | Min/Max Cache | | Min-Max Sketch |
 
+## SketchStream算子API - 2022.5.16
+|                         | API | Example |
+| ----------------------- | ---- | ---- |
+| Map                     | Custom | None |
+| Filter                  | Custom | None |
+| Reduce (count)          | 需指定一个32bit的value, 结果返回到相同field. | SketchStream_reduce(32w4096) func_1;                                    func_1.apply(hdr.kvs.val_word.val_word_1.data); |
+| Join          | 需指定一个32bit的value, pkt有可能标记为drop. | SketchStream_join(32w4096) func_1;                                                     func_1.apply(hdr.kvs.val_word.val_word_1.data); |
+| Distinct (Bloom filter) | 完全根据key, 因此不需要输入参数. | SketchStream_distinct(32w4096) func_1;                                          func_1.apply(); |
+| Groupby (min/max)       | 需指定一个32bit的value, 结果返回到相同field. | SketchStream_groupby_max(32w4096) func_1;                                func_1.apply(hdr.kvs.key_word.key_word_1.data); |
+
+## 算子的问题
+
+加强原先的**map(fields, [expr])** 为**map(fields, [Ternary_expr])**. (海风学长建议)
+
+**[Ternary_expr] = [field op constant] ? [Ternary_expr1]: [Ternary_expr2]**.
+
+写成三元表达式的形式:
+
+```python
+# 设pkt个数为cnt.
+# cnt \in [1,N_1] 一定sample.
+# cnt \in [N_1, N_2] 以p_1的概率sample.
+# cnt \in [N_2, ∞] 以p_2的概率sample.
+# Threshold_i是 2^32 * p_i 上取整, 在monitor中算出来.
+PacketStream.map(rd, "random")
+						.map(cnt, "1")
+            .reduce(cnt)
+            .map(condition, [cnt <= N_1]?
+                							1:
+                							[cnt <= N_2]?
+                								[rd <= Threshold_1]:
+                								[rd <= Threshold_2])
+            .filter([condition == 0])
+```
+
+翻译成**P4**代码:
+
+实现思路: 
+
+1. 保留之前将**最终结果**存在`hdr.values`中的实现, 目前有$8$个$32$bit数.
+2. `ig_md`即`metadata`中保存中间结果, 例如下面的`ig_md.cnt_subN1`.
+
+```c
+control Condition_map(
+		inout header_t hdr,
+		inout metadata_t ig_md) {
+  
+    // 这里需要根据不同的condition计算出结果便于在 if else 中比较, 否则超过4byte+12bits的限制.
+    // action里不能有依赖. !!: 比较容易的实现时每个action里面一条运算, 依赖交给compiler.
+    action cal() {
+        ig_md.cnt_subN1 = ig_md.cnt - N_1;
+        ig_md.cnt_subN2 = ig_md.cnt - N_2;
+        ig_md.rand_subTh1 = ig_md.rand - Threshold_1;
+        ig_md.rand_subTh2 = ig_md.rand - Threshold_2;
+    }
+
+    apply {
+        cal();
+        // 三元表达式的形式比较容易翻译成如下代码.
+        if (ig_md.cnt_subN1 <= 0) {
+            ig_md.sgn = 32w1;
+        } else {
+            if (ig_md.cnt_subN2 <= 0) {
+                if (ig_md.rand_subTh1 <= 0) {
+                    ig_md.sgn = 32w1;
+                } else {
+                    ig_md.sgn = 32w0;
+                }
+            } else {
+                if (ig_md.rand_subTh2 <= 0) {
+                    ig_md.sgn = 32w1;
+                } else {
+                    ig_md.sgn = 32w0;
+                }
+            }
+        }
+    }
+}
+```
+
+
 # 硬件版本
 
 ## 测试

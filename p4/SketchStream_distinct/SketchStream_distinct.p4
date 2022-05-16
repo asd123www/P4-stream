@@ -10,7 +10,6 @@
 
 
 #define HASH_WIDTH 12
-#define ARRAY_LENGTH 32w4096
 const int FlowAID = 16w1;
 const int FlowBID = 16w2;
 
@@ -19,6 +18,18 @@ struct metadata_t {
     bit<HASH_WIDTH> hash_idx1; // index hash.
     bit<HASH_WIDTH> hash_idx2; // index hash.
     bit<HASH_WIDTH> hash_idx3; // index hash.
+    bit<32> hash_32;// JOIN: Finger-Print hash.
+
+    bit<32> result1;
+    bit<32> result2;
+    bit<32> result3;
+
+    bit<32> diff1;
+    bit<32> diff2;
+    bit<32> diff3;
+
+    bit<32> InPlace; // JOIN: compare if-in hash.
+    bit<8> num; // JOIN: if-in: stage number.
 
     bit sgn1;
     bit sgn2;
@@ -26,104 +37,7 @@ struct metadata_t {
 }
 
 #include "parser.p4"
-
-
-
-control BloomFilter(
-		inout header_t hdr,
-		inout metadata_t ig_md,
-        in bit<HASH_WIDTH> idx,
-        out bit sgn) {
-
-    Register<bit, bit<HASH_WIDTH>>(ARRAY_LENGTH, 0) cs_table; // initial value is 0.
-
-    RegisterAction<bit, bit<HASH_WIDTH>, bit>(cs_table) cs_action = {
-        void apply(inout bit register_data, out bit result) {
-            result = register_data;
-            register_data = 1;
-        }
-    };
-
-    apply {
-        sgn = cs_action.execute(idx);
-    }
-}
-
-
-
-// 整一个长度为8的.
-control SketchStream_distinct(
-		inout header_t hdr,
-		inout metadata_t ig_md,
-        inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md) {
-    
-    action drop() {
-        ig_dprsr_md.drop_ctl = 1;
-    }
-
-    CRCPolynomial<bit<32>>(32w0x6b8cb0c5, true, false, false, 32w0xFFFFFFFF, 32w0xFFFFFFFF) poly0;
-    CRCPolynomial<bit<32>>(32w0x30243f0b, true, false, false, 32w0xFFFFFFFF, 32w0xFFFFFFFF) poly1;
-    CRCPolynomial<bit<32>>(32w0x0f79f523, true, false, false, 32w0xFFFFFFFF, 32w0xFFFFFFFF) poly2;
-    Hash<bit<HASH_WIDTH>>(HashAlgorithm_t.CRC32, poly2) hash0;
-    Hash<bit<HASH_WIDTH>>(HashAlgorithm_t.CRC32, poly1) hash1;
-    Hash<bit<HASH_WIDTH>>(HashAlgorithm_t.CRC32, poly2) hash2;
-
-    action apply_hash0() {
-        ig_md.hash_idx1 = hash0.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data});
-    }
-    action apply_hash1() {
-        ig_md.hash_idx2 = hash1.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data});
-    }
-    action apply_hash2() {
-        ig_md.hash_idx3 = hash2.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data});
-    }
-
-    table tbl_hash0 {
-        actions = {
-            apply_hash0;
-        }
-        const default_action = apply_hash0();
-        size = 512;
-    }
-
-    table tbl_hash1 {
-        actions = {
-            apply_hash1;
-        }
-        const default_action = apply_hash1();
-        size = 512;
-    }
-
-    table tbl_hash2 {
-        actions = {
-            apply_hash2;
-        }
-        const default_action = apply_hash2();
-        size = 512;
-    }
-
-    BloomFilter() A1;
-    BloomFilter() A2;
-    BloomFilter() A3;
-
-    apply {
-        tbl_hash0.apply();
-        tbl_hash1.apply();
-        tbl_hash2.apply();
-
-        A1.apply(hdr, ig_md, ig_md.hash_idx1, ig_md.sgn1);
-        A2.apply(hdr, ig_md, ig_md.hash_idx2, ig_md.sgn2);
-        A3.apply(hdr, ig_md, ig_md.hash_idx3, ig_md.sgn3);
-
-        // all hit before insert.
-        if ((ig_md.sgn1 == 1) || (ig_md.sgn2 == 1) || (ig_md.sgn3 == 1)) {
-            drop();
-        }
-    }
-}
-
-
-
+#include "SketchStream.p4" // our library
 
 control SwitchIngress(
         inout header_t hdr,
@@ -157,14 +71,15 @@ control SwitchIngress(
         default_action = NoAction;
     }
 
-    SketchStream_distinct() func_1;
+    // #define ARRAY_LENGTH 32w4096
+    SketchStream_distinct(32w4096) func_1;
 
     apply {
         // there is some disturbing pkts!!!
         if (hdr.udp.isValid()) func_1.apply(hdr, ig_md, ig_dprsr_md);
 
         ipv4_lpm.apply();
-        
+
     }
 }
 
