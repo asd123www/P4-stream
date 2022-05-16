@@ -39,15 +39,18 @@ Runtime(conf, [queries])# 以这些应用运行
 | join  | 2*pkts + BloomFilter |  | Join Chain|
 | groupby(min/max)  | Min/Max Cache | | Min-Max Sketch |
 
+
 ## SketchStream算子API - 2022.5.16
 |                         | API | Example |
 | ----------------------- | ---- | ---- |
 | Map                     | Custom | None |
 | Filter                  | Custom | None |
-| Reduce (count)          | 需指定一个32bit的value, 结果返回到相同field. | SketchStream_reduce(32w4096) func_1;                                    func_1.apply(hdr.kvs.val_word.val_word_1.data); |
-| Join          | 需指定一个32bit的value, pkt有可能标记为drop. | SketchStream_join(32w4096) func_1;                                                     func_1.apply(hdr.kvs.val_word.val_word_1.data); |
-| Distinct (Bloom filter) | 完全根据key, 因此不需要输入参数. | SketchStream_distinct(32w4096) func_1;                                          func_1.apply(); |
-| Groupby (min/max)       | 需指定一个32bit的value, 结果返回到相同field. | SketchStream_groupby_max(32w4096) func_1;                                func_1.apply(hdr.kvs.key_word.key_word_1.data); |
+| Reduce (count)          | 需指定一个32bit的value, 结果返回到相同field. | SketchStream_reduce(8w4, 32w4096, 32w4095) func_1;                                    func_1.apply(hdr.kvs.val_word.val_word_1.data); |
+| Join          | 需指定一个32bit的value, pkt有可能标记为drop. | SketchStream_join(32w4096, 32w4095) func_1;                                                     func_1.apply(hdr.kvs.val_word.val_word_1.data); |
+| Distinct (Bloom filter) | 完全根据key, 因此不需要输入参数. | SketchStream_distinct(8w3, 32w4096, 32w4095) func_1;                                          func_1.apply(); |
+| Groupby (min/max)       | 需指定一个32bit的value, 结果返回到相同field. | SketchStream_groupby_max(8w4, 32w4096, 32w4095) func_1;                                func_1.apply(hdr.kvs.key_word.key_word_1.data); |
+
+其中`bit<8>`指定了`multi-level sketch`的级数, 目前只支持`1-4`, 但是非常容易扩展. 成对出现的两个`bit<32>`数分别指定`array length` 和`_mask`, 其中`mask`用来将`bit<32>`的`hash_idx`限制在数组范围内, `array length`必须是$2$的幂.
 
 ## 算子的问题
 
