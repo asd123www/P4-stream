@@ -8,29 +8,29 @@
 #include "headers.p4"
 #include "util.p4"
 
-#define HASH_WIDTH 12
 const int FlowAID = 16w1;
 const int FlowBID = 16w2;
 struct metadata_t {
-    bit<HASH_WIDTH> hash_idx1; // index hash.
-    bit<HASH_WIDTH> hash_idx2; // index hash.
-    bit<HASH_WIDTH> hash_idx3; // index hash.
+    bit<32> hash_idx1; // index hash.
+    bit<32> hash_idx2; // index hash.
+    bit<32> hash_idx3; // index hash.
+    bit<32> hash_idx4; // index hash.
     bit<32> hash_32;// JOIN: Finger-Print hash.
 
-    bit<32> result1;
-    bit<32> result2;
-    bit<32> result3;
-
-    bit<32> diff1;
-    bit<32> diff2;
-    bit<32> diff3;
-
-    bit<32> InPlace; // JOIN: compare if-in hash.
+    bit<32> tmp0;
+    bit<32> tmp1;
+    bit<32> tmp2;
+    bit<32> tmp3;
+    bit<32> tmp4;
+    bit<32> tmp5;
+    bit<32> tmp6; // JOIN: compare if-in hash.
+    bit<32> tmp7;
     bit<8> num; // JOIN: if-in: stage number.
 
     bit sgn1;
     bit sgn2;
     bit sgn3;
+    bit sgn4;
 }
 
 #include "parser.p4"
@@ -70,7 +70,7 @@ control SwitchIngress(
     }
 
     // #define ARRAY_LENGTH 32w4096
-    SketchStream_join(32w4096) func_1;
+    SketchStream_join(32w4096, 32w4095) func_1;
 
     apply {
         // there is some disturbing pkts!!!

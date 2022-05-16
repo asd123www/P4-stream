@@ -8,10 +8,11 @@ control Query_Hash(
     CRCPolynomial<bit<32>>(32w0x0f79f523, true, false, false, 32w0xFFFFFFFF, 32w0xFFFFFFFF) poly2;
     CRCPolynomial<bit<32>>(32w0x00390fc3, true, false, false, 32w0xFFFFFFFF, 32w0xFFFFFFFF) poly3;
     CRCPolynomial<bit<32>>(32w0x298ac673, true, false, false, 32w0xFFFFFFFF, 32w0xFFFFFFFF) poly4;
-    Hash<bit<HASH_WIDTH>>(HashAlgorithm_t.CRC32, poly0) hash0;
-    Hash<bit<HASH_WIDTH>>(HashAlgorithm_t.CRC32, poly1) hash1;
-    Hash<bit<HASH_WIDTH>>(HashAlgorithm_t.CRC32, poly2) hash2;
+    Hash<bit<32>>(HashAlgorithm_t.CRC32, poly0) hash0;
+    Hash<bit<32>>(HashAlgorithm_t.CRC32, poly1) hash1;
+    Hash<bit<32>>(HashAlgorithm_t.CRC32, poly2) hash2;
     Hash<bit<32>>(HashAlgorithm_t.CRC32, poly3) hash3;
+    Hash<bit<32>>(HashAlgorithm_t.CRC32, poly4) hash4;
 
     action apply_hash0() {
         ig_md.hash_idx1 = hash0.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data});
@@ -23,7 +24,10 @@ control Query_Hash(
         ig_md.hash_idx3 = hash2.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data});
     }
     action apply_hash3() {
-        ig_md.hash_32 = hash3.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data});
+        ig_md.hash_idx4 = hash3.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data});
+    }
+    action apply_hash4() {
+        ig_md.hash_32 = hash4.get({hdr.kvs.key_word.key_word_1.data, hdr.kvs.key_word.key_word_2.data, hdr.kvs.key_word.key_word_3.data, hdr.kvs.key_word.key_word_4.data, hdr.kvs.key_word.key_word_5.data, hdr.kvs.key_word.key_word_6.data, hdr.kvs.key_word.key_word_7.data, hdr.kvs.key_word.key_word_8.data});
     }
 
     table tbl_hash0 {
@@ -33,7 +37,6 @@ control Query_Hash(
         const default_action = apply_hash0();
         size = 512;
     }
-
     table tbl_hash1 {
         actions = {
             apply_hash1;
@@ -41,7 +44,6 @@ control Query_Hash(
         const default_action = apply_hash1();
         size = 512;
     }
-
     table tbl_hash2 {
         actions = {
             apply_hash2;
@@ -49,12 +51,18 @@ control Query_Hash(
         const default_action = apply_hash2();
         size = 512;
     }
-
     table tbl_hash3 {
         actions = {
             apply_hash3;
         }
         const default_action = apply_hash3();
+        size = 512;
+    }
+    table tbl_hash4 {
+        actions = {
+            apply_hash4;
+        }
+        const default_action = apply_hash4();
         size = 512;
     }
 
@@ -63,6 +71,7 @@ control Query_Hash(
         tbl_hash1.apply();
         tbl_hash2.apply();
         tbl_hash3.apply();
+        tbl_hash4.apply();
     }
 }
 
@@ -72,12 +81,12 @@ control Query_Hash(
 control BloomFilter_Distinct(
 		inout header_t hdr,
 		inout metadata_t ig_md,
-        in bit<HASH_WIDTH> idx,
-        out bit sgn)(bit<32> ARRAY_LENGTH) {
+        in bit<32> idx,
+        out bit sgn) (bit<32> ARRAY_LENGTH) {
 
-    Register<bit, bit<HASH_WIDTH>>(ARRAY_LENGTH, 0) cs_table; // initial value is 0.
+    Register<bit, bit<32>>(ARRAY_LENGTH, 0) cs_table; // initial value is 0.
 
-    RegisterAction<bit, bit<HASH_WIDTH>, bit>(cs_table) cs_action = {
+    RegisterAction<bit, bit<32>, bit>(cs_table) cs_action = {
         void apply(inout bit register_data, out bit result) {
             result = register_data;
             register_data = 1;
@@ -88,30 +97,61 @@ control BloomFilter_Distinct(
         sgn = cs_action.execute(idx);
     }
 }
-
-
 // 
 control SketchStream_distinct(
 		inout header_t hdr,
 		inout metadata_t ig_md,
-        inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md)(bit<32> ARRAY_LENGTH) {
+        inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md) (bit<8> LEVELS, bit<32> ARRAY_LENGTH, bit<32> _mask) {
     
     action drop() {
         ig_dprsr_md.drop_ctl = 1;
     }
+    // calculate index to different field for parallelism! 
+    action Get_hash_index() {
+        ig_md.tmp4 = ig_md.hash_idx1 & _mask;
+        ig_md.tmp5 = ig_md.hash_idx2 & _mask;
+        ig_md.tmp6 = ig_md.hash_idx3 & _mask;
+        ig_md.tmp7 = ig_md.hash_idx4 & _mask;
+    }
+
 
     BloomFilter_Distinct(ARRAY_LENGTH) A1;
     BloomFilter_Distinct(ARRAY_LENGTH) A2;
     BloomFilter_Distinct(ARRAY_LENGTH) A3;
+    BloomFilter_Distinct(ARRAY_LENGTH) A4;
 
     apply {
-        A1.apply(hdr, ig_md, ig_md.hash_idx1, ig_md.sgn1);
-        A2.apply(hdr, ig_md, ig_md.hash_idx2, ig_md.sgn2);
-        A3.apply(hdr, ig_md, ig_md.hash_idx3, ig_md.sgn3);
-
-        // all hit before insert.
-        if ((ig_md.sgn1 == 1) || (ig_md.sgn2 == 1) || (ig_md.sgn3 == 1)) {
-            drop();
+        Get_hash_index();
+        if (LEVELS == 8w1) {
+            A1.apply(hdr, ig_md, ig_md.tmp4, ig_md.sgn1);
+            // all hit before insert.
+            if (ig_md.sgn1 == 1) {
+                drop();
+            }
+        } else if (LEVELS == 8w2) {
+            A1.apply(hdr, ig_md, ig_md.tmp4, ig_md.sgn1);
+            A2.apply(hdr, ig_md, ig_md.tmp5, ig_md.sgn2);
+            // all hit before insert.
+            if ((ig_md.sgn1 == 1) && (ig_md.sgn2 == 1)) {
+                drop();
+            }
+        } else if (LEVELS == 8w3) {
+            A1.apply(hdr, ig_md, ig_md.tmp4, ig_md.sgn1);
+            A2.apply(hdr, ig_md, ig_md.tmp5, ig_md.sgn2);
+            A3.apply(hdr, ig_md, ig_md.tmp6, ig_md.sgn3);
+            // all hit before insert.
+            if ((ig_md.sgn1 == 1) && (ig_md.sgn2 == 1) && (ig_md.sgn3 == 1)) {
+                drop();
+            }
+        } else { // maximal is 4.
+            A1.apply(hdr, ig_md, ig_md.tmp4, ig_md.sgn1);
+            A2.apply(hdr, ig_md, ig_md.tmp5, ig_md.sgn2);
+            A3.apply(hdr, ig_md, ig_md.tmp6, ig_md.sgn3);
+            A4.apply(hdr, ig_md, ig_md.tmp7, ig_md.sgn4);
+            // all hit before insert.
+            if ((ig_md.sgn1 == 1) && (ig_md.sgn2 == 1) && (ig_md.sgn3 == 1) && (ig_md.sgn4 == 1)) {
+                drop();
+            }
         }
     }
 }
@@ -127,13 +167,13 @@ control SketchStream_distinct(
 control CountMin_Array(
     inout header_t hdr,
 	inout metadata_t ig_md,
-    in bit<HASH_WIDTH> idx,
+    in bit<32> idx,
     in bit<32> src_field,
-    out bit<32> dest_field)(bit<32> ARRAY_LENGTH) {
-    
-    Register<bit<32>, bit<HASH_WIDTH>> (ARRAY_LENGTH, 0x7FFFFFFF) cs_table; // initial value is INT_MAX.
+    out bit<32> dest_field) (bit<32> ARRAY_LENGTH) {
 
-    RegisterAction<bit<32>, bit<HASH_WIDTH>, bit<32>>(cs_table) cs_action = {
+    Register<bit<32>, bit<32>> (ARRAY_LENGTH, 0x7FFFFFFF) cs_table; // initial value is INT_MAX.
+
+    RegisterAction<bit<32>, bit<32>, bit<32>>(cs_table) cs_action = {
         void apply(inout bit<32> register_data, out bit<32> result) {
             if (src_field < register_data) {
                 register_data = src_field;
@@ -152,24 +192,69 @@ control SketchStream_groupby_min(
 		inout header_t hdr,
 		inout metadata_t ig_md,
         inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md,
-        inout bit<32> field) (bit<32> ARRAY_LENGTH) {
+        inout bit<32> field) (bit<8> LEVELS, bit<32> ARRAY_LENGTH, bit<32> _mask) {
     
+    // calculate index to different field for parallelism! 
+    action Get_hash_index() {
+        ig_md.tmp4 = ig_md.hash_idx1 & _mask;
+        ig_md.tmp5 = ig_md.hash_idx2 & _mask;
+        ig_md.tmp6 = ig_md.hash_idx3 & _mask;
+        ig_md.tmp7 = ig_md.hash_idx4 & _mask;
+    }
+
     action drop() {
         ig_dprsr_md.drop_ctl = 1;
+    }
+    action Get_Max1() {
+        field = ig_md.tmp0;
+    }
+    action Get_Max2() {
+        field = max(ig_md.tmp0, ig_md.tmp1);
+    }
+    action Get_Max3_1() {
+        ig_md.tmp3 = max(ig_md.tmp0, ig_md.tmp1);
+    }
+    action Get_Max3_2() {
+        field = max(ig_md.tmp3, ig_md.tmp2);
+    }
+    action Get_Max4_1() {
+        ig_md.tmp4 = max(ig_md.tmp0, ig_md.tmp1);
+        ig_md.tmp5 = max(ig_md.tmp2, ig_md.tmp3);
+    }
+    action Get_Max4_2() {
+        field = max(ig_md.tmp4, ig_md.tmp5);
     }
 
     CountMin_Array(ARRAY_LENGTH) A1;
     CountMin_Array(ARRAY_LENGTH) A2;
     CountMin_Array(ARRAY_LENGTH) A3;
+    CountMin_Array(ARRAY_LENGTH) A4;
 
     apply {
-        Query_Hash.apply(hdr, ig_md);
-
-        A1.apply(hdr, ig_md, ig_md.hash_idx1, field, ig_md.result1);
-        A2.apply(hdr, ig_md, ig_md.hash_idx2, field, ig_md.result2);
-        A3.apply(hdr, ig_md, ig_md.hash_idx3, field, ig_md.result3);
-        ig_md.diff1 = max(ig_md.result1, ig_md.result2);
-        field = max(ig_md.diff1, ig_md.result3);
+        Get_hash_index();
+        // wrong!!!!
+        // Query_Hash.apply(hdr, ig_md);
+        if (LEVELS == 8w1) {
+            A1.apply(hdr, ig_md, ig_md.tmp4, field, ig_md.tmp0);
+            Get_Max1();
+        } else if (LEVELS == 8w2) {
+            A1.apply(hdr, ig_md, ig_md.tmp4, field, ig_md.tmp0);
+            A2.apply(hdr, ig_md, ig_md.tmp5, field, ig_md.tmp1);
+            Get_Max2();
+        } else if (LEVELS == 8w3) {
+            A1.apply(hdr, ig_md, ig_md.tmp4, field, ig_md.tmp0);
+            A2.apply(hdr, ig_md, ig_md.tmp5, field, ig_md.tmp1);
+            A3.apply(hdr, ig_md, ig_md.tmp6, field, ig_md.tmp2);
+            Get_Max3_1();
+            Get_Max3_2();
+        } else { // at most 4.
+            A1.apply(hdr, ig_md, ig_md.tmp4, field, ig_md.tmp0);
+            A2.apply(hdr, ig_md, ig_md.tmp5, field, ig_md.tmp1);
+            A3.apply(hdr, ig_md, ig_md.tmp6, field, ig_md.tmp2);
+            A4.apply(hdr, ig_md, ig_md.tmp7, field, ig_md.tmp3);
+            Get_Max4_1();
+            Get_Max4_2();
+        }
     }
 }
 
@@ -180,13 +265,13 @@ control SketchStream_groupby_min(
 control CountMax_Array(
     inout header_t hdr,
 	inout metadata_t ig_md,
-    in bit<HASH_WIDTH> idx,
+    in bit<32> idx,
     in bit<32> src_field,
     out bit<32> dest_field) (bit<32> ARRAY_LENGTH) {
-    
-    Register<bit<32>, bit<HASH_WIDTH>> (ARRAY_LENGTH, 0) cs_table; // initial value is INT_MAX.
 
-    RegisterAction<bit<32>, bit<HASH_WIDTH>, bit<32>>(cs_table) cs_action = {
+    Register<bit<32>, bit<32>> (ARRAY_LENGTH, 0) cs_table; // initial value is INT_MAX.
+
+    RegisterAction<bit<32>, bit<32>, bit<32>>(cs_table) cs_action = {
         void apply(inout bit<32> register_data, out bit<32> result) {
             if (src_field > register_data) {
                 register_data = src_field;
@@ -205,26 +290,70 @@ control SketchStream_groupby_max(
 		inout header_t hdr,
 		inout metadata_t ig_md,
         inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md,
-        inout bit<32> field) (bit<32> ARRAY_LENGTH) {
+        inout bit<32> field) (bit<8> LEVELS, bit<32> ARRAY_LENGTH, bit<32> _mask) {
     
+    // calculate index to different field for parallelism! 
+    action Get_hash_index() {
+        ig_md.tmp4 = ig_md.hash_idx1 & _mask;
+        ig_md.tmp5 = ig_md.hash_idx2 & _mask;
+        ig_md.tmp6 = ig_md.hash_idx3 & _mask;
+        ig_md.tmp7 = ig_md.hash_idx4 & _mask;
+    }
+
     action drop() {
         ig_dprsr_md.drop_ctl = 1;
     }
+    action Get_Min1() {
+        field = ig_md.tmp0;
+    }
+    action Get_Min2() {
+        field = min(ig_md.tmp0, ig_md.tmp1);
+    }
+    action Get_Min3_1() {
+        ig_md.tmp3 = min(ig_md.tmp0, ig_md.tmp1);
+    }
+    action Get_Min3_2() {
+        field = min(ig_md.tmp3, ig_md.tmp2);
+    }
+    action Get_Min4_1() {
+        ig_md.tmp4 = min(ig_md.tmp0, ig_md.tmp1);
+        ig_md.tmp5 = min(ig_md.tmp2, ig_md.tmp3);
+    }
+    action Get_Min4_2() {
+        field = min(ig_md.tmp4, ig_md.tmp5);
+    }
+
 
     CountMax_Array(ARRAY_LENGTH) A1;
     CountMax_Array(ARRAY_LENGTH) A2;
     CountMax_Array(ARRAY_LENGTH) A3;
+    CountMax_Array(ARRAY_LENGTH) A4;
 
     apply {
-        Query_Hash.apply(hdr, ig_md);
-
-
-        A1.apply(hdr, ig_md, ig_md.hash_idx1, field, ig_md.result1);
-        A2.apply(hdr, ig_md, ig_md.hash_idx2, field, ig_md.result2);
-        A3.apply(hdr, ig_md, ig_md.hash_idx3, field, ig_md.result3);
-
-        ig_md.diff1 = min(ig_md.result1, ig_md.result2);
-        field = min(ig_md.diff1, ig_md.result3);
+        Get_hash_index();
+        // wrong!!!
+        // Query_Hash.apply(hdr, ig_md);
+        if (LEVELS == 8w1) {
+            A1.apply(hdr, ig_md, ig_md.tmp4, field, ig_md.tmp0);
+            Get_Min1();
+        } else if (LEVELS == 8w2) {
+            A1.apply(hdr, ig_md, ig_md.tmp4, field, ig_md.tmp0);
+            A2.apply(hdr, ig_md, ig_md.tmp5, field, ig_md.tmp1);
+            Get_Min2();
+        } else if (LEVELS == 8w3) {
+            A1.apply(hdr, ig_md, ig_md.tmp4, field, ig_md.tmp0);
+            A2.apply(hdr, ig_md, ig_md.tmp5, field, ig_md.tmp1);
+            A3.apply(hdr, ig_md, ig_md.tmp6, field, ig_md.tmp2);
+            Get_Min3_1();
+            Get_Min3_2();
+        } else { // at most 4.
+            A1.apply(hdr, ig_md, ig_md.tmp4, field, ig_md.tmp0);
+            A2.apply(hdr, ig_md, ig_md.tmp5, field, ig_md.tmp1);
+            A3.apply(hdr, ig_md, ig_md.tmp6, field, ig_md.tmp2);
+            A4.apply(hdr, ig_md, ig_md.tmp7, field, ig_md.tmp3);
+            Get_Min4_1();
+            Get_Min4_2();
+        }
     }
 }
 
@@ -244,9 +373,9 @@ control OccupyPlace(
         inout header_t hdr,
 		inout metadata_t ig_md) (bit<32> ARRAY_LENGTH) {
 
-    Register<pair, bit<HASH_WIDTH>>(size = ARRAY_LENGTH, initial_value = {0, 0}) cs_table; // initial value is 0.
+    Register<pair, bit<32>>(size = ARRAY_LENGTH, initial_value = {0, 0}) cs_table; // initial value is 0.
 
-    RegisterAction<pair, bit<HASH_WIDTH>, bit<32>>(cs_table) cs_action = {
+    RegisterAction<pair, bit<32>, bit<32>>(cs_table) cs_action = {
         void apply(inout pair val, out bit<32> result) {
 
             if (val.first == 0) {
@@ -262,7 +391,7 @@ control OccupyPlace(
     };
 
     apply {
-        ig_md.InPlace = cs_action.execute(ig_md.hash_idx1);
+        ig_md.tmp0 = cs_action.execute(ig_md.tmp1);
     }
 }
 
@@ -271,9 +400,9 @@ control CountStage(
         inout header_t hdr,
 		inout metadata_t ig_md) (bit<32> ARRAY_LENGTH) {
     
-    Register<bit<8>, bit<HASH_WIDTH>>(ARRAY_LENGTH, 0) cs_table; // initial value is 0.
+    Register<bit<8>, bit<32>>(ARRAY_LENGTH, 0) cs_table; // initial value is 0.
 
-    RegisterAction<bit<8>, bit<HASH_WIDTH>, bit<8>>(cs_table) cs_action = {
+    RegisterAction<bit<8>, bit<32>, bit<8>>(cs_table) cs_action = {
         void apply(inout bit<8> register_data, out bit<8> result) {
             
             if (register_data == 8w7)
@@ -286,7 +415,7 @@ control CountStage(
     };
 
     apply {
-        ig_md.num = cs_action.execute(ig_md.hash_idx1); // mod 8.
+        ig_md.num = cs_action.execute(ig_md.tmp1); // mod 8.
     }
 }
 
@@ -295,9 +424,9 @@ control StorageArray(
         inout val_word_h modifyValue,
 		inout metadata_t ig_md) (bit<8> num, bit<32> ARRAY_LENGTH) {
     
-    Register<bit<32>, bit<HASH_WIDTH>>(ARRAY_LENGTH, 0) cs_table; // initial value is 0.
+    Register<bit<32>, bit<32>>(ARRAY_LENGTH, 0) cs_table; // initial value is 0.
 
-    RegisterAction<bit<32>, bit<HASH_WIDTH>, bit<32>>(cs_table) cs_action = {
+    RegisterAction<bit<32>, bit<32>, bit<32>>(cs_table) cs_action = {
         void apply(inout bit<32> register_data, out bit<32> result) {
 
             if (ig_md.num == num) // 若要修改, 则将该pkt的value存储; 否则直接读出value.
@@ -308,7 +437,7 @@ control StorageArray(
     };
 
     apply {
-        modifyValue.data = cs_action.execute(ig_md.hash_idx1);
+        modifyValue.data = cs_action.execute(ig_md.tmp1);
         if (ig_md.num == 8w0) // we really need the value.
             modifyValue.setValid();
     }
@@ -319,10 +448,13 @@ control SketchStream_join(
 		inout header_t hdr,
 		inout metadata_t ig_md,
         inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md,
-        inout bit<32> field) (bit<32> ARRAY_LENGTH) {
+        inout bit<32> field) (bit<32> ARRAY_LENGTH, bit<32> _mask) {
     
     action drop() {
         ig_dprsr_md.drop_ctl = 1;
+    }
+    action index_limit() {
+        ig_md.tmp1 = ig_md.hash_idx1 & _mask;
     }
     action copy_filed() { // we can only join 32-bit number, therefore copy to first val_word.
         hdr.kvs.val_word.val_word_1.data = field; 
@@ -339,11 +471,13 @@ control SketchStream_join(
     StorageArray(8w7, ARRAY_LENGTH) array7; // 每个array有一个id!
 
     apply {
+        copy_filed();
+        index_limit();
         Query_Hash.apply(hdr, ig_md);
 
         arrayID.apply(hdr, ig_md);
 
-        if (ig_md.InPlace == ig_md.hash_32) { // hit, operate.
+        if (ig_md.tmp0 == ig_md.hash_32) { // hit, operate.
             arrayStage.apply(hdr, ig_md);// get the stage number.
 
             // bring out the info.
@@ -372,13 +506,13 @@ control SketchStream_join(
 control Counting_Array(
     inout header_t hdr,
 	inout metadata_t ig_md,
-    in bit<HASH_WIDTH> idx,
+    in bit<32> idx,
     in bit<32> src_field,
     out bit<32> dest_field) (bit<32> ARRAY_LENGTH) {
-    
-    Register<bit<32>, bit<HASH_WIDTH>> (ARRAY_LENGTH, 0) cs_table; // initial value is 0.
 
-    RegisterAction<bit<32>, bit<HASH_WIDTH>, bit<32>>(cs_table) cs_action = {
+    Register<bit<32>, bit<32>> (ARRAY_LENGTH, 0) cs_table; // initial value is 0.
+
+    RegisterAction<bit<32>, bit<32>, bit<32>>(cs_table) cs_action = {
         void apply(inout bit<32> register_data, out bit<32> result) {
             register_data = register_data + src_field;
             result = register_data;
@@ -395,20 +529,66 @@ control Counting_Array(
 control SketchStream_reduce(
         inout header_t hdr,
 		inout metadata_t ig_md,
-        inout bit<32> field) (bit<32> ARRAY_LENGTH) {
+        inout bit<32> field) (bit<8> LEVELS, bit<32> ARRAY_LENGTH, bit<32> _mask) {
     
+    // calculate index to different field for parallelism! 
+    action Get_hash_index() {
+        ig_md.tmp4 = ig_md.hash_idx1 & _mask;
+        ig_md.tmp5 = ig_md.hash_idx2 & _mask;
+        ig_md.tmp6 = ig_md.hash_idx3 & _mask;
+        ig_md.tmp7 = ig_md.hash_idx4 & _mask;
+    }
+
+    action Get_Min1() {
+        field = ig_md.tmp0;
+    }
+    action Get_Min2() {
+        field = min(ig_md.tmp0, ig_md.tmp1);
+    }
+    action Get_Min3_1() {
+        ig_md.tmp3 = min(ig_md.tmp0, ig_md.tmp1);
+    }
+    action Get_Min3_2() {
+        field = min(ig_md.tmp3, ig_md.tmp2);
+    }
+    action Get_Min4_1() {
+        ig_md.tmp4 = min(ig_md.tmp0, ig_md.tmp1);
+        ig_md.tmp5 = min(ig_md.tmp2, ig_md.tmp3);
+    }
+    action Get_Min4_2() {
+        field = min(ig_md.tmp4, ig_md.tmp5);
+    }
+
     Counting_Array(ARRAY_LENGTH) A1;
     Counting_Array(ARRAY_LENGTH) A2;
     Counting_Array(ARRAY_LENGTH) A3;
+    Counting_Array(ARRAY_LENGTH) A4;
 
     apply {
-        Query_Hash.apply(hdr, ig_md);
+        Get_hash_index();
 
-        A1.apply(hdr, ig_md, ig_md.hash_idx1, field, ig_md.result1);
-        A2.apply(hdr, ig_md, ig_md.hash_idx2, field, ig_md.result2);
-        A3.apply(hdr, ig_md, ig_md.hash_idx3, field, ig_md.result3);
-        ig_md.diff1 = min(ig_md.result1, ig_md.result2);
-
-        field = min(ig_md.diff1, ig_md.result3);
+        // wrong!!!
+        // Query_Hash.apply(hdr, ig_md);
+        if (LEVELS == 8w1) {
+            A1.apply(hdr, ig_md, ig_md.tmp4, field, ig_md.tmp0);
+            Get_Min1();
+        } else if (LEVELS == 8w2) {
+            A1.apply(hdr, ig_md, ig_md.tmp4, field, ig_md.tmp0);
+            A2.apply(hdr, ig_md, ig_md.tmp5, field, ig_md.tmp1);
+            Get_Min2();
+        } else if (LEVELS == 8w3) {
+            A1.apply(hdr, ig_md, ig_md.tmp4, field, ig_md.tmp0);
+            A2.apply(hdr, ig_md, ig_md.tmp5, field, ig_md.tmp1);
+            A3.apply(hdr, ig_md, ig_md.tmp6, field, ig_md.tmp2);
+            Get_Min3_1();
+            Get_Min3_2();
+        } else {
+            A1.apply(hdr, ig_md, ig_md.tmp4, field, ig_md.tmp0);
+            A2.apply(hdr, ig_md, ig_md.tmp5, field, ig_md.tmp1);
+            A3.apply(hdr, ig_md, ig_md.tmp6, field, ig_md.tmp2);
+            A4.apply(hdr, ig_md, ig_md.tmp7, field, ig_md.tmp3);
+            Get_Min4_1();
+            Get_Min4_2();
+        }
     }
 }
