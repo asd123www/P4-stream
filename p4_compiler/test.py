@@ -1,41 +1,44 @@
-bfrt.simple_l3.pipe.reduce_origin_sum_3_4096_1.t2.clear()
-bfrt.simple_l3.pipe.reduce_origin_sum_3_4096_1.t2.add_with_a2(c_2 = 0)
-bfrt.simple_l3.pipe.reduce_origin_sum_3_4096_1.t2.dump()
+
+from src.packetstream import PacketStream
+from p4_compiler.P4Generator import P4Generator
+import os
+
+''' test code. '''
+if __name__ == '__main__':
+
+    WORDCOUNT_QID = 1
+    qconf = {
+        "split": 3,
+        "is_hash": True
+    }
+    queries = [PacketStream(1, 'WordCount', qconf)
+                .Map('origin', 'useless', '32w10', "=")
+                .Reduce('useless', 'sum', 3, 4096)
+                .Map('useless', 'low_bit', '32w7', '&')
+                .Filter('low_bit', '32w0', '=='),
+                PacketStream(1, 'WordCount', qconf)
+                .Map('origin', 'useless', '32w10', "=")
+                .Reduce('useless', 'sum', 3, 4096)
+                .Map('useless', 'low_bit', '32w7', '&')
+                .Filter('low_bit', '32w0', '==')]
+    
+    # split task
+    p4_queries = []
+    spark_queries = []
+    for query in queries:
+        p4_query, spark_query, success = query.split()
+        assert(success)
+        p4_queries.append(p4_query)
+        spark_queries.append(spark_query)
+
+    # Generate .p4 file, format, command.py
+    # p4_code, sh_code, em_formats = "", "", [{"qid":0, "qname":"test", "em_format":"origin"}]
+    p4_code, sh_code, em_formats = P4Generator(p4_queries).solve()
 
 
-bfrt.simple_l3.pipe.reduce_origin_sum_3_4096_1.t3.clear()
-bfrt.simple_l3.pipe.reduce_origin_sum_3_4096_1.t3.add_with_a3(c_3 = 0)
-bfrt.simple_l3.pipe.reduce_origin_sum_3_4096_1.t3.dump()
-
-
-bfrt.simple_l3.pipe.SwitchIngress.get_threshold.tbl_get_threshold.clear()
-bfrt.simple_l3.pipe.SwitchIngress.get_threshold.tbl_get_threshold.add_with_tbl_get_threshold_act(qid=1, threshold=10)
-bfrt.simple_l3.pipe.SwitchIngress.get_threshold.tbl_get_threshold.dump()
-
-
-bfrt.simple_l3.pipe.SwitchIngress.ipv4_lpm.clear()
-bfrt.simple_l3.pipe.SwitchIngress.ipv4_lpm.add_with_ipv4_forward(hdr_ipv4_dst_addr=ip("10.1.100.2"), hdr_ipv4_dst_addr_p_length=32, dst_addr=mac("ff:ff:ff:ff:ff:ff"), port=60)
-bfrt.simple_l3.pipe.SwitchIngress.ipv4_lpm.dump()
-
-
-import time
-
-flag = 0
-while True:
-	curtime = int(time.time())
-	if flag:
-		bfrt.simple_l3.pipe.reduce_origin_sum_3_4096_1.update_1_0.cs_table2.clear()
-		bfrt.simple_l3.pipe.reduce_origin_sum_3_4096_1.update_1_1.cs_table2.clear()
-		bfrt.simple_l3.pipe.reduce_origin_sum_3_4096_1.update_1_2.cs_table2.clear()
-		bfrt.simple_l3.pipe.SwitchIngress.stflag.clear()
-		flag = 0
-	else:
-		bfrt.simple_l3.pipe.reduce_origin_sum_3_4096_1.update_1_0.cs_table1.clear()
-		bfrt.simple_l3.pipe.reduce_origin_sum_3_4096_1.update_1_1.cs_table1.clear()
-		bfrt.simple_l3.pipe.reduce_origin_sum_3_4096_1.update_1_2.cs_table1.clear()
-		bfrt.simple_l3.pipe.SwitchIngress.stflag.add_with_flag1(flag = 0)
-		bfrt.simple_l3.pipe.SwitchIngress.stflag.add_with_flag1(flag = 1)
-		flag = 1
-	while True:
-		if curtime != int(time.time()):
-			break
+    print(os.path.dirname(__file__) + "/test.p4")
+    # # print(self.sh_code)
+    # with open(os.path.dirname(__file__) + "/test.py", "w") as file:
+    #     file.write(sh_code)
+    with open(os.path.dirname(__file__) + "/test.p4", "w") as file:
+        file.write(p4_code)

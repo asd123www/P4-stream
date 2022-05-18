@@ -1,5 +1,5 @@
-  /********  G L O B A L   E G R E S S   M E T A D A T A  *********/
 
+/********  G L O B A L   E G R E S S   M E T A D A T A  *********/
 
 parser EgressParser(packet_in        pkt,
     /* User */
@@ -26,14 +26,3 @@ control EgressDeparser(packet_out pkt,
         pkt.emit(hdr);
     }
 }
-
-Pipeline(
-    SwitchIngressParser(),
-    SwitchIngress(),
-    SwitchIngressDeparser(),
-    EgressParser(),
-    EmptyEgress(),
-    EgressDeparser()
-) pipe;
-
-Switch(pipe) main;
