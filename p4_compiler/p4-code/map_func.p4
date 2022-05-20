@@ -1,4 +1,4 @@
-control filter_asd123www(
+control <replace_with_app_name>(
         inout header_t hdr,
         inout metadata_t ig_md,
         in ingress_intrinsic_metadata_t ig_intr_md,
@@ -7,18 +7,11 @@ control filter_asd123www(
     action drop() {
         ig_dprsr_md.drop_ctl = 1;
     }
+    Random<bit<32>>() rnd;
 
-    action pkt_filter() {
-        ig_md.tmp0 = a + b;
-
-    }
-
+<replace_with_actions>
 
     apply {
-        pkt_filter();
-
-        if (ig_md.tmp0 > 0) {
-            drop();
-        }
+<replace_with_body>
     }
 }

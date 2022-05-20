@@ -23,6 +23,9 @@ def _readStr(pathname):
 class Application():
     MAX_SKETCHNUM = 4
 
+    # every operator return: (name, program)
+    # program is only for appending, name is for decl in app control block.
+    # different operator has different API, therefore need special treatment.
     def __init__(self, p4_query):
         self.name = p4_query.qname
         self.p4_query = p4_query
@@ -41,7 +44,6 @@ class Application():
         idx = self.keyname.index(key)
         return 'hdr.kvs.val_word.val_word_' + str(idx+1) +'.data'
     
-
     def Map(self, new_key, expr):
         if (new_key in self.keyname):
             print('The new key "{}" has existed!\n'.format(new_key))
@@ -54,7 +56,7 @@ class Application():
         self.keyname.append(new_key)
         map_t = MapOperator(self, new_key, expr)
 
-        return map_t.generate() # return the name & program?
+        return map_t.gen() # return the name & program?
     
 
     def Filter(self, condition):
@@ -65,7 +67,7 @@ class Application():
         self.counter += 1
         filter_t = FilterOperator(self, condition)
 
-        return filter_t.generate()
+        return filter_t.gen()
 
     # @param num: how many sketches you want.
     # @param length: how long the sketches you want.
