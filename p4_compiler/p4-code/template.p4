@@ -77,7 +77,6 @@ control SwitchIngress(
 <replace_with_multi_application_declaration>
 
     apply {
-        // there is some disturbing pkts!!!
         if (hdr.udp.isValid()) {
 <replace_with_multi_application_call>
         }

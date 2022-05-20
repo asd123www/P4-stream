@@ -1,5 +1,5 @@
 import os
-from ternary_expr import Ternery_expr
+from .ternary_expr import Ternery_expr
 
 def _readStr(pathname):
     program = ""
@@ -24,7 +24,7 @@ class MapOperator():
         prog = _readStr("/../p4-code/map_func.p4")
         prog = prog.replace("<replace_with_app_name>", "map_{}".format(self.new_key))
         prog = prog.replace("<replace_with_actions>", cond_code + action_code) # add a random decl.
-        prog = prog.replace("<replace_with_body>", body_code)
+        prog = prog.replace("<replace_with_body>", body_code[:-1])
 
         return "map_{}".format(self.new_key), prog
 

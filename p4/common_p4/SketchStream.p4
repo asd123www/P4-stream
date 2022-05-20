@@ -529,8 +529,13 @@ control Counting_Array(
 control SketchStream_reduce(
         inout header_t hdr,
 		inout metadata_t ig_md,
+        inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md,
         inout bit<32> field) (bit<8> LEVELS, bit<32> ARRAY_LENGTH, bit<32> _mask) {
     
+    action drop() {
+        ig_dprsr_md.drop_ctl = 1;
+    }
+
     // calculate index to different field for parallelism! 
     action Get_hash_index() {
         ig_md.tmp4 = ig_md.hash_idx1 & _mask;

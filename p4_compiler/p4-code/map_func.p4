@@ -1,7 +1,7 @@
 control <replace_with_app_name>(
         inout header_t hdr,
         inout metadata_t ig_md,
-        in ingress_intrinsic_metadata_t ig_intr_md,
+        inout ingress_intrinsic_metadata_for_deparser_t ig_dprsr_md,
         out bit<32> field) {
     
     action drop() {
@@ -15,3 +15,5 @@ control <replace_with_app_name>(
 <replace_with_body>
     }
 }
+
+

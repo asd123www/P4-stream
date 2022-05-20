@@ -12,15 +12,9 @@ if __name__ == '__main__':
         "is_hash": True
     }
     queries = [PacketStream(1, 'WordCount', qconf)
-                .Map('origin', 'useless', '32w10', "=")
-                .Reduce('useless', 'sum', 3, 4096)
-                .Map('useless', 'low_bit', '32w7', '&')
-                .Filter('low_bit', '32w0', '=='),
-                PacketStream(1, 'WordCount', qconf)
-                .Map('origin', 'useless', '32w10', "=")
-                .Reduce('useless', 'sum', 3, 4096)
-                .Map('useless', 'low_bit', '32w7', '&')
-                .Filter('low_bit', '32w0', '==')]
+                .Map('random', (((None, "random", None), "assign"), None, None))
+                .Filter((('random', '-', '2345958'), '>'))
+                .Reduce("random")]
     
     # split task
     p4_queries = []
@@ -41,4 +35,4 @@ if __name__ == '__main__':
     # with open(os.path.dirname(__file__) + "/test.py", "w") as file:
     #     file.write(sh_code)
     with open(os.path.dirname(__file__) + "/test.p4", "w") as file:
-        file.write(p4_code)
+        file.write(sh_code)

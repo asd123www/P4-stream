@@ -1,3 +1,5 @@
+from asyncio import new_event_loop
+from csv import field_size_limit
 from curses import keyname
 from dis import show_code
 from re import L
@@ -30,7 +32,6 @@ class Application():
         self.name = p4_query.qname
         self.p4_query = p4_query
 
-
         self.maxKeyLen = 3
         self.maxSketchNum = 4
         self.counter = 0
@@ -51,45 +52,51 @@ class Application():
         if (len(self.keyname) >= self.maxKeyLen):
             print('Exceed the maximal number of value: {}\n'.format(self.maxKeyLen))
             sys.exit(0)
-        
+
         self.counter += 1
         self.keyname.append(new_key)
+        field = self.findVarStr(new_key)
         map_t = MapOperator(self, new_key, expr)
+        name, func = map_t.gen()
+        self.decl += func
 
-        return map_t.gen() # return the name & program?
+
+        self.program_action += "    {}() func_{};\n".format(name, self.counter)
+        self.program_body += "        func_{}.apply(hdr, ig_md, ig_dprsr_md, {});\n".format(self.counter, field)
     
 
     def Filter(self, condition):
-        # if key not in self.keyname: 
-        #     print('The key "{}" doesn\'t exist!'.format(key))
-        #     sys.exit(0)
-        
         self.counter += 1
-        filter_t = FilterOperator(self, condition)
+        filter_t = FilterOperator(self, condition, str(self.counter))
+        name, func = filter_t.gen()
+        self.decl += func
 
-        return filter_t.gen()
+        self.program_action += "    {}() func_{};\n".format(name, self.counter)
+        self.program_body += "        func_{}.apply(hdr, ig_md, ig_dprsr_md);\n".format(self.counter)
 
-    # @param num: how many sketches you want.
-    # @param length: how long the sketches you want.
-    def Reduce(self, key, num, length): 
-        if num > self.MAX_SKETCHNUM:
-            print('The # of sketch exceeds {}!'.format(self.MAX_SKETCHNUM))
-            sys.exit(0)
+    def Reduce(self, key):
         if key not in self.keyname: 
             print('The key "{}" doesn\'t exist!'.format(key))
             sys.exit(0)
         
-        # After reduce only the value correspondent key remains, others drop.
+        # wrong!!! we should inherit sketch config from autosketch
+        field = self.findVarStr(key)
+        name = "SketchStream_reduce({}, {}, {})".format("8w3", "32w4096", "32w4095") #(level, length, mask)
         self.counter += 1
-        reduce_t = ReduceOperator(self, key, num, length)
-        return reduce_t.generate()
+        self.program_action += "    {} func_{};\n".format(name, self.counter)
+        self.program_body += "        func_{}.apply(hdr, ig_md, ig_dprsr_md, {});\n".format(self.counter, field)
     
     def eval(self):
 
         # wrong!!!, 调用auto sketch的生成config接口得到stateful状态配置.
 
+        self.decl = ""
+        self.program_action = ""
+        self.program_body = ""
+        self.program = _readStr("/p4-code/func.p4")
+        self.program = self.program.replace("<replace_with_app_name>", self.p4_query.qname)
+
         for operator in self.p4_query.operators:
-            # print(operator[0])
             if operator[0] == 'Map':
                 self.Map(*operator[1])
             elif operator[0] == 'Filter':
@@ -107,7 +114,10 @@ class Application():
             else:
                 assert(0 == 1)
         
-        return ""
+        self.program = self.program.replace("<replace_with_actions>", self.program_action)
+        self.program = self.program.replace("<replace_with_body_action>", self.program_body[:-1])
+
+        return self.decl + self.program
 
 
 
@@ -171,7 +181,7 @@ class P4Generator():
             # divert different flows to corres function.
             if_state = _readStr("/p4-code/branch.p4")
             if_state = if_state.replace("<replace_with_app_qid>", "16w{0}".format(p4_query.qid))
-            if_state = if_state.replace("<replace_with_function_call>", "func_{0}.apply(hdr, ig_md, ig_intr_md);".format(p4_query.qname))
+            if_state = if_state.replace("<replace_with_function_call>", "func_{0}.apply(hdr, ig_md, ig_dprsr_md);".format(p4_query.qname))
             branch_code = branch_code + if_state
 
             # wrong!!! format没整理好.
@@ -180,8 +190,8 @@ class P4Generator():
         # define the apps
         program = program.replace("<replace_with_multi_application_definition>", apps_code)
         program = program.replace("<replace_with_multi_application_declaration>", decl_code)
-        program = program.replace("<replace_with_multi_application_call>", branch_code)
-
+        program = program.replace("<replace_with_multi_application_call>", branch_code[:-1])
+        
         # self.shiftFlagCode()
 
         return program, self.sh_code, em_formats

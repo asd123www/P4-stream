@@ -1,5 +1,5 @@
 import os
-from ternary_expr import Atomic_expr, Ternery_expr
+from .ternary_expr import Atomic_expr, Ternery_expr
 
 def _readStr(pathname):
     program = ""
@@ -20,10 +20,10 @@ class FilterOperator():
     def gen(self):
 
         name = "filter_{}".format(self.id)
-        body_code = _readStr("/../p4-code/func.p4")
+        body_code = _readStr("/../p4-code/filter_func.p4")
         
         cond_code = _readStr("/../p4-code/action.p4")
-        cond_code = cond_code.replace("<replace_with_single_instruction>", Atomic_expr(self.scope, *self.cond_expr[0], "ig_md.tmp0").eval())
+        cond_code = cond_code.replace("<replace_with_single_instruction>", Atomic_expr(self.scope, *self.cond_expr[0], "ig_md.tmp0").eval()[:-1])
         cond_code = cond_code.replace("<replace_with_action_name>", "pkt_filter")
 
         body_code = body_code.replace("<replace_with_app_name>", name)
@@ -33,10 +33,10 @@ class FilterOperator():
 
         return name, body_code
 
-if __name__ == '__main__':
-    map_t = FilterOperator((("a", "+", "b"), ">"), "asd123www")
+# if __name__ == '__main__':
+#     map_t = FilterOperator((("a", "+", "b"), ">"), "asd123www")
 
-    name, prog = map_t.gen()
-    with open(os.path.dirname(__file__) + "/b.p4", "w") as file:
-        file.write(prog)
-    pass
+#     name, prog = map_t.gen()
+#     with open(os.path.dirname(__file__) + "/b.p4", "w") as file:
+#         file.write(prog)
+#     pass

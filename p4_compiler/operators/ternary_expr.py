@@ -29,8 +29,8 @@ class Atomic_expr():
         return
     
     def find_represent(self, name):
-        if isinstance(name, int):
-            return name
+        if name.isnumeric():
+            return "32w{}".format(name)
         return self.scope.findVarStr(name)
 
     # action_code for conditional eval.
@@ -76,7 +76,7 @@ class Ternery_expr():
         if self.cond[1] == "assign":
             action_code = _readStr("", "/../p4-code/action.p4")
             action_code = action_code.replace("<replace_with_action_name>", "assign_{0}".format(self.size))
-            action_code = action_code.replace("<replace_with_single_instruction>", Atomic_expr(self.scope, *self.cond[0], "field").eval())
+            action_code = action_code.replace("<replace_with_single_instruction>", Atomic_expr(self.scope, *self.cond[0], "field").eval()[:-1])
             body_code = "{0}assign_{1}();\n".format(indent, self.size)
         else:
             sub_ter1 = Ternery_expr(*self.sub_ter1, level = self.level + 1, size = self.size)

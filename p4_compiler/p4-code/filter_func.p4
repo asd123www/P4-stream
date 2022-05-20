@@ -10,7 +10,10 @@ control <replace_with_app_name>(
 <replace_with_actions>
 
     apply {
-<replace_with_body_action>
+        <replace_with_body_action>
+        if (<replace_with_condition>) {
+            drop();
+        }
     }
 }
 
