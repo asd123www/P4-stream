@@ -35,4 +35,4 @@ if __name__ == '__main__':
     # with open(os.path.dirname(__file__) + "/test.py", "w") as file:
     #     file.write(sh_code)
     with open(os.path.dirname(__file__) + "/test.p4", "w") as file:
-        file.write(sh_code)
+        file.write(p4_code)
