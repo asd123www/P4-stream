@@ -6,10 +6,8 @@ from re import L
 import sys
 import os
 from src.packetstream import PacketStream
-from .StaticCode import P4String, p4_code_path, py_code_path
 from .operators.filter import FilterOperator
 from .operators.map import MapOperator
-from .operators.reduce import ReduceOperator
 
 
 # return the content of file by `String`
@@ -132,7 +130,7 @@ class P4Generator():
         self.lpmEntries = [['10.1.100.2', '32', 'ff:ff:ff:ff:ff:ff', '60']]
         self.arraylist = []
 
-        self.P4String = P4String(self)
+        # self.P4String = P4String(self)
         self.PacketStream = PSInstance
 
     # def shiftFlagCode(self):
