@@ -30,7 +30,7 @@ class Application():
         self.name = p4_query.qname
         self.p4_query = p4_query
 
-        self.maxKeyLen = 3
+        self.maxKeyLen = 8
         self.maxSketchNum = 4
         self.counter = 0
         self.inverse = {'>':'<=', '<':'>=', '==':'!=', '>=':'<', '<=':'>', "!=":'=='} 

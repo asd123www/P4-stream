@@ -15,6 +15,7 @@ class MapOperator():
         # self.generator = P4Generator
         self.scope = scope
         self.new_key = new_key
+
         self.expr = Ternery_expr(scope, *expr)
         return
 
@@ -24,7 +25,7 @@ class MapOperator():
         prog = _readStr("/../p4-code/map_func.p4")
         prog = prog.replace("<replace_with_app_name>", "map_{}".format(self.new_key))
         prog = prog.replace("<replace_with_actions>", cond_code + action_code) # add a random decl.
-        prog = prog.replace("<replace_with_body>", body_code[:-1])
+        prog = prog.replace("<replace_with_body>", body_code)
 
         return "map_{}".format(self.new_key), prog
 

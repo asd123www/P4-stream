@@ -39,7 +39,7 @@ class Atomic_expr():
         if self.op == "random":
             return "{} = rnd.get();\n".format(self.dst)
         elif self.op == "immediate":
-            return "{0} = 32w{1}\n".format(self.dst, self.a)
+            return "{0} = 32w{1};\n".format(self.dst, self.a)
         name_a = self.find_represent(self.a)
         name_b = self.find_represent(self.b)
         return "{} = {} {} {};\n".format(self.dst, name_a, self.op, name_b)
@@ -71,6 +71,10 @@ class Ternery_expr():
         action_code = "" # maintain variable in assignment, by `action`.
         body_code = "" # if-else statement.
         indent = "    " * self.level
+        if self.sub_ter1 is not None:
+            print(*self.sub_ter1)
+        if self.sub_ter2 is not None:
+            print(*self.sub_ter2)
 
         # action_cond, body_cond = self.cond[0].eval()
         if self.cond[1] == "assign":
@@ -79,9 +83,9 @@ class Ternery_expr():
             action_code = action_code.replace("<replace_with_single_instruction>", Atomic_expr(self.scope, *self.cond[0], "field").eval()[:-1])
             body_code = "{0}assign_{1}();\n".format(indent, self.size)
         else:
-            sub_ter1 = Ternery_expr(*self.sub_ter1, level = self.level + 1, size = self.size)
+            sub_ter1 = Ternery_expr(self.scope, *self.sub_ter1, level = self.level + 1, size = self.size)
             self.size, cond_code1, action_true, body_true = sub_ter1.eval()
-            sub_ter2 = Ternery_expr(*self.sub_ter2, level = self.level + 1, size = self.size)
+            sub_ter2 = Ternery_expr(self.scope, *self.sub_ter2, level = self.level + 1, size = self.size)
             self.size, cond_code2, action_false, body_false = sub_ter2.eval()
 
             action_code = action_code + action_true + action_false
