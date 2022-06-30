@@ -610,10 +610,6 @@ void sender(char *appName, uint32_t throughput, u_int32_t burst_size, u_int32_t 
 
     printf("Throughput: %.3f\n", 1.0 * totalByte / (clock() - clockTime) * CLOCKS_PER_SEC);
 
-    printf("totalByte: %d\n", totalByte);
-
     for (int i = 0; i < n; ++i) rte_free(pkt[i]);
-
     return;
-    //return totalByte;
 }
