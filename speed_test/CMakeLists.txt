@@ -15,7 +15,7 @@ include_directories(include)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-add_compile_options(-fgnu89-inline -mssse3 -Wall -fcommon -march=native)
+add_compile_options(-O3 -fgnu89-inline -mssse3 -Wall -fcommon -march=native)
 if(${USE_DEBUG})
     add_compile_options(-g)
 else()

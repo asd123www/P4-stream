@@ -547,7 +547,7 @@ int packetFormat(char *key, int value, int QID) {
 
 
 // test the max speed, the switch is able to handle, so best effort.
-void sender(char *appName, uint32_t throughput, u_int32_t burst_size, u_int32_t QID) {
+void sender(char *appName, uint32_t bandwith, u_int32_t burst_size, u_int32_t QID) {
     dpdk_init("00000000000011111", 0); //11111 -> 0,1,2,3,4 core可用
 
     cqs_core_affinitize_dpdk(36); //这个线程在哪个以上可用的core上跑.
@@ -572,8 +572,6 @@ void sender(char *appName, uint32_t throughput, u_int32_t burst_size, u_int32_t 
 
 
     int n = 0;
-    // the file name should be paramiterized.
-    // FILE *file = freopen("../../data/wordCount.txt", "r", stdin);
     freopen("data/wordCount.txt", "r", stdin);
     // the format is fixed so 'keys + 8' means 'offset = 8'.
     for (int i = 0, value; scanf("%s%d", keys + 8, &value) == 2; ++i) {
@@ -581,34 +579,29 @@ void sender(char *appName, uint32_t throughput, u_int32_t burst_size, u_int32_t 
         int len = packetFormat(keys, value, QID);
         pkt[i] = generate_packet(len, keys);
     }
-    // fclose(file);
-    // printf("%d\n", n);
-    // for (int i = 0; i < n; ++i) printf("%d\n", pkt[i] -> length);
+    for (int i = 0; i < n; ++i) printf("%d\n", pkt[i] -> length);
 
     clock_t clockTime = clock();
 
     uint16_t ip_id = 0;
     u_int64_t totalByte = 0;
-    for (uint32_t accum = 0; totalByte < throughput;) {
+    for (uint32_t accum = 0; totalByte < bandwith;) {
         for (int i = 0; i < n; ++i) {
             ipv4_header_t* ipv4 = pkt[i]->data + sizeof(ethernet_header_t);
             void* ptr = dpdk_module_func.get_wptr(up_handle, pkt[i], pkt[i]->length);
             ipv4->id = ntohs(ip_id ++);
             rte_memcpy(ptr, pkt[i]->data, pkt[i] -> length);
-            // accum += pkt[i] -> length;
             ++ accum;
-            ++ totalByte;
+            totalByte += pkt[i] -> length;
 
-            if (accum >= burst_size || (totalByte >= throughput && i == n-1)) {
+            if (accum >= burst_size || (totalByte >= bandwith && i == n-1)) {
                 dpdk_module_func.send_pkts(up_handle);
-                // totalByte += accum;
                 accum = 0;
             }
         }
-        // printf("Bytes sent: %d\n", totalByte);
     }
 
-    printf("Throughput: %.3f\n", 1.0 * totalByte / (clock() - clockTime) * CLOCKS_PER_SEC);
+    printf("Throughput: %.3f MBps\n", 1.0 * totalByte / (clock() - clockTime));
 
     for (int i = 0; i < n; ++i) rte_free(pkt[i]);
     return;

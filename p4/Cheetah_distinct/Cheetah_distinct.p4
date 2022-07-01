@@ -158,11 +158,11 @@ control DistinctOperator(
     }
 
 
+    // cheetah default: w = 2, d = 4096.
+    // Only LRU is tested, no FIFO thing.
     // Cache依赖性太强了, 开四个就15个stage了.
     CacheLine() array1;
     CacheLine() array2;
-    CacheLine() array3;
-    // CacheLine() array4;
 
     apply {
         tbl_hash0.apply();
@@ -172,8 +172,6 @@ control DistinctOperator(
         tbl_assign.apply();
         array1.apply(hdr, ig_md, ig_dprsr_md);
         array2.apply(hdr, ig_md, ig_dprsr_md);
-        array3.apply(hdr, ig_md, ig_dprsr_md);
-        // array4.apply(hdr, ig_md, ig_dprsr_md);
     }
 }
 
@@ -217,7 +215,6 @@ control SwitchIngress(
         if (hdr.udp.isValid()) func_1.apply(hdr, ig_md, ig_dprsr_md);
 
         ipv4_lpm.apply();
-        
     }
 }
 

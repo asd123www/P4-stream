@@ -154,6 +154,7 @@ control GroupByOperator(
     }
 
 
+    // Cheetah Default: w = 8 ??? 根本开不来啊.
     CacheLine(8w3) array1;
     CacheLine(8w2) array2;
     CacheLine(8w2) array3;
