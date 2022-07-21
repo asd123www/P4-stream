@@ -26,7 +26,7 @@
 #include <rte_memcpy.h>
 
 /* Constants */
-#define MAX_PKT_BURST 256
+#define MAX_PKT_BURST 128
 #define MAX_DEVICES 32
 
 #define CORE_MAX_BUF_SIZE 1536
@@ -81,8 +81,8 @@ const struct rte_eth_conf port_conf_default = {
 /* Structures */
 struct mbuf_table
 {
-    uint16_t len; /* length of queued packets */
     struct rte_mbuf *m_table[MAX_PKT_BURST];
+    uint16_t len; /* length of queued packets */
 };
 
 typedef struct
@@ -240,11 +240,14 @@ void* dpdk_init_handle_up(uint16_t nif, uint32_t stack_id) {
     if (ret < 0)
         rte_exit(EXIT_FAILURE, "tx_queue_setup");
 
-    for (j = 0; j < MAX_PKT_BURST; j++)
-    {
-        dpc->wmbufs.m_table[j] = rte_pktmbuf_alloc(dpc->pktmbuf_pool);
-        if (dpc->wmbufs.m_table[j] == NULL) {
-            rte_exit(EXIT_FAILURE, "Failed to allocate %d:wmbuf[%d] on device %d!\n", rte_lcore_id(), j, nif);
+    int rc = rte_mempool_get_bulk(dpc->pktmbuf_pool, &(dpc->wmbufs.m_table), MAX_PKT_BURST);
+    if(unlikely(rc)) {
+        for (j = 0; j < MAX_PKT_BURST; j++)
+        {
+            dpc->wmbufs.m_table[j] = rte_pktmbuf_alloc(dpc->pktmbuf_pool);
+            if (dpc->wmbufs.m_table[j] == NULL) {
+                rte_exit(EXIT_FAILURE, "Failed to allocate %d:wmbuf[%d] on device %d!\n", rte_lcore_id(), j, nif);
+            }
         }
     }
     dpc->wmbufs.len = 0;
@@ -288,7 +291,7 @@ void* dpdk_get_wptr(void* ctx, packet_data_t* pkt, uint16_t len) {
     char* ptr;
     int len_of_mbuf;    
 
-    if (dpc->wmbufs.len == MAX_PKT_BURST)
+    if (unlikely(dpc->wmbufs.len == MAX_PKT_BURST))
         return NULL;
 
     len_of_mbuf = dpc->wmbufs.len;
@@ -339,7 +342,7 @@ int dpdk_send_pkts(void *ctx) {
     dpdk_context_up *dpc = (dpdk_context_up *)ctx;
     int ret = 0, i, portid = dpc->portid;
 
-    if (dpc->wmbufs.len > 0) {
+    if (likely(dpc->wmbufs.len > 0)) {
         // printf("[DPDK]Sending packets.\n");
 
         ret = dpc->wmbufs.len;
@@ -352,11 +355,14 @@ int dpdk_send_pkts(void *ctx) {
             cnt -= ret;
         } while (cnt > 0);
 
-        for (i = 0; i < dpc->wmbufs.len; i++) {
-            dpc->wmbufs.m_table[i] = rte_pktmbuf_alloc(dpc->pktmbuf_pool);
-            if (dpc->wmbufs.m_table[i] == NULL) {
-                rte_exit(EXIT_FAILURE, "Failed to allocate %d:wmbuf[%d] on device %d!\n",
-                         rte_lcore_id(), i, portid);
+        int rc = rte_mempool_get_bulk(dpc->pktmbuf_pool, &(dpc->wmbufs.m_table), dpc->wmbufs.len);
+        if(unlikely(rc)) {
+            for (i = 0; i < dpc->wmbufs.len; i++) {
+                dpc->wmbufs.m_table[i] = rte_pktmbuf_alloc(dpc->pktmbuf_pool);
+                if (unlikely(dpc->wmbufs.m_table[i] == NULL)) {
+                    rte_exit(EXIT_FAILURE, "Failed to allocate %d:wmbuf[%d] on device %d!\n",
+                            rte_lcore_id(), i, portid);
+                }
             }
         }
         dpc->wmbufs.len = 0;
@@ -552,30 +558,32 @@ int main(int argc,char** argv) {
     ipv4_header_t* ipv4 = pkt->data + sizeof(ethernet_header_t);
     uint64_t tot_bytes = 0;
     uint64_t target_bytes = 10000000000LL;
-    struct timespec time = {0, 0};
-    clock_gettime(CLOCK_MONOTONIC, &time);
-    uint64_t start_tick = time.tv_sec*1000000000LL + time.tv_nsec;
+    // struct timespec time = {0, 0};
+    // clock_gettime(CLOCK_MONOTONIC, &time);
+    // uint64_t start_tick = time.tv_sec*1000000000LL + time.tv_nsec;
         
+        uint64_t count = 0;
     while(tot_bytes < target_bytes) {
-        struct timespec time = {0, 0};
-        clock_gettime(CLOCK_MONOTONIC, &time);
-        uint64_t tick = time.tv_sec*1000000000LL + time.tv_nsec;
-        if(tick >= next_send_tick) {
+        // struct timespec time = {0, 0};
+        // clock_gettime(CLOCK_MONOTONIC, &time);
+        // uint64_t tick = time.tv_sec*1000000000LL + time.tv_nsec;
+        // if(tick >= next_send_tick) {
             for(int i = 0; i < burst_size; i ++) {
                 void* ptr = dpdk_module_func.get_wptr(up_handle, pkt, pkt->length);
                 // ipv4->id = ntohs(ip_id ++);
-                rte_memcpy(ptr, pkt->data, 64);
+                // if(count < NB_MBUF);
+                    rte_memcpy(ptr, pkt->data, 64);
+                // count ++;
             }
             dpdk_module_func.send_pkts(up_handle);
-            next_send_tick = tick + 1000000000LL * sending_length / bandwidth;
-            tot_bytes += sending_length;
-        }
+        //     next_send_tick = tick + 1000000000LL * sending_length / bandwidth;
+        // }
     }
 
-    clock_gettime(CLOCK_MONOTONIC, &time);
-    uint64_t end_tick = time.tv_sec*1000000000LL + time.tv_nsec;
+    // clock_gettime(CLOCK_MONOTONIC, &time);
+    // uint64_t end_tick = time.tv_sec*1000000000LL + time.tv_nsec;
     
-    printf("Throughput: %.3lf Mbps\n", 1.0 * tot_bytes * 8 * 1000LL / (end_tick - start_tick));
+    // printf("Throughput: %.3lf Mbps\n", 1.0 * tot_bytes * 8 * 1000LL / (end_tick - start_tick));
 
     rte_free(pkt);
 }

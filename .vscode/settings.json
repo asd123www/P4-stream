@@ -2,6 +2,7 @@
     "files.associations": {
         "*.tcc": "cpp",
         "fstream": "cpp",
-        "charconv": "c"
+        "charconv": "c",
+        "bitset": "c"
     }
 }

@@ -11,3 +11,4 @@ p4/tmp_*
 *.bin
 *.pcap
 *.gz
+.vscode/*

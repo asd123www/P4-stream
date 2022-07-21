@@ -12,7 +12,7 @@ lib.sender.restype = ctypes.c_void_p
 lib.sender.argtypes = [ctypes.c_wchar_p, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32]
 
 st = time.time()
-lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint32(10000000000), ctypes.c_uint32(16), ctypes.c_uint32(QID))
+lib.sender(ctypes.c_wchar_p(appName), ctypes.c_uint32(10000000000), ctypes.c_uint32(64), ctypes.c_uint32(QID))
 
 
 
