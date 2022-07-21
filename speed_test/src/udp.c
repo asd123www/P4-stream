@@ -513,9 +513,9 @@ packet_data_t* generate_packet() {
 }
 
 int main(int argc,char** argv) {
-    dpdk_init("11111", 0);
+    dpdk_init("ffffffffffff", 0);
 
-    cqs_core_affinitize_dpdk(0);
+    cqs_core_affinitize_dpdk(40);
 
     dpdk_module_func.load_module();
     
@@ -532,7 +532,7 @@ int main(int argc,char** argv) {
     dst_ip = s2ipv4("10.1.100.2");
     src_port = 1111;
     dst_port = 2222;
-    s2macaddr((char*)dst_mac, "3c:fd:fe:bb:ca:81");
+    s2macaddr((char*)dst_mac, "3c:fd:fe:bb:cc:a9");
     // src_ip = s2ipv4("10.0.12.9");
     // dst_ip = s2ipv4("10.0.12.10");
     // src_port = 45678;
@@ -550,20 +550,32 @@ int main(int argc,char** argv) {
     uint16_t ip_id = 0;
     uint64_t sending_length = burst_size * payload_length;
     ipv4_header_t* ipv4 = pkt->data + sizeof(ethernet_header_t);
-    while(1) {
+    uint64_t tot_bytes = 0;
+    uint64_t target_bytes = 10000000000LL;
+    struct timespec time = {0, 0};
+    clock_gettime(CLOCK_MONOTONIC, &time);
+    uint64_t start_tick = time.tv_sec*1000000000LL + time.tv_nsec;
+        
+    while(tot_bytes < target_bytes) {
         struct timespec time = {0, 0};
         clock_gettime(CLOCK_MONOTONIC, &time);
         uint64_t tick = time.tv_sec*1000000000LL + time.tv_nsec;
         if(tick >= next_send_tick) {
             for(int i = 0; i < burst_size; i ++) {
                 void* ptr = dpdk_module_func.get_wptr(up_handle, pkt, pkt->length);
-                ipv4->id = ntohs(ip_id ++);
+                // ipv4->id = ntohs(ip_id ++);
                 rte_memcpy(ptr, pkt->data, 64);
             }
             dpdk_module_func.send_pkts(up_handle);
             next_send_tick = tick + 1000000000LL * sending_length / bandwidth;
+            tot_bytes += sending_length;
         }
     }
+
+    clock_gettime(CLOCK_MONOTONIC, &time);
+    uint64_t end_tick = time.tv_sec*1000000000LL + time.tv_nsec;
+    
+    printf("Throughput: %.3lf Mbps\n", 1.0 * tot_bytes * 8 * 1000LL / (end_tick - start_tick));
 
     rte_free(pkt);
 }

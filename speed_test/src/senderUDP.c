@@ -548,9 +548,9 @@ int packetFormat(char *key, int value, int QID) {
 
 // test the max speed, the switch is able to handle, so best effort.
 void sender(char *appName, uint32_t bandwith, u_int32_t burst_size, u_int32_t QID) {
-    dpdk_init("00000000000011111", 0); //11111 -> 0,1,2,3,4 core可用
+    dpdk_init("ffffffffffff", 0); //16进制 mask
 
-    cqs_core_affinitize_dpdk(36); //这个线程在哪个以上可用的core上跑.
+    cqs_core_affinitize_dpdk(40); //这个线程在哪个以上可用的core上跑.
 
     dpdk_module_func.load_module();
 
@@ -568,7 +568,7 @@ void sender(char *appName, uint32_t bandwith, u_int32_t burst_size, u_int32_t QI
     dst_ip = s2ipv4("10.1.100.2");
     src_port = 1111;
     dst_port = 2222;
-    s2macaddr((char*)dst_mac, "3c:fd:fe:bb:ca:81"); // 60 253 254 187 202 129
+    s2macaddr((char*)dst_mac, "3c:fd:fe:bb:cc:a9"); // 60 253 254 187 202 129
 
 
     int n = 0;
@@ -579,26 +579,27 @@ void sender(char *appName, uint32_t bandwith, u_int32_t burst_size, u_int32_t QI
         int len = packetFormat(keys, value, QID);
         pkt[i] = generate_packet(len, keys);
     }
-    for (int i = 0; i < n; ++i) printf("%d\n", pkt[i] -> length);
+    uint64_t send_tot_bytes = 0;
+    for (int i = 0; i < n; ++i) send_tot_bytes += pkt[i] -> length;
+    printf("%lu\n", send_tot_bytes);
 
     clock_t clockTime = clock();
 
     uint16_t ip_id = 0;
     u_int64_t totalByte = 0;
-    for (uint32_t accum = 0; totalByte < bandwith;) {
+    uint64_t count = 0;
+    for (; totalByte < bandwith;) {
         for (int i = 0; i < n; ++i) {
             ipv4_header_t* ipv4 = pkt[i]->data + sizeof(ethernet_header_t);
             void* ptr = dpdk_module_func.get_wptr(up_handle, pkt[i], pkt[i]->length);
             ipv4->id = ntohs(ip_id ++);
-            rte_memcpy(ptr, pkt[i]->data, pkt[i] -> length);
-            ++ accum;
-            totalByte += pkt[i] -> length;
-
-            if (accum >= burst_size || (totalByte >= bandwith && i == n-1)) {
-                dpdk_module_func.send_pkts(up_handle);
-                accum = 0;
-            }
+            // if(count < RTE_TEST_TX_DESC_DEFAULT) 
+                rte_memcpy(ptr, pkt[i]->data, pkt[i] -> length);
+            // count ++;
         }
+        totalByte += send_tot_bytes;
+        dpdk_module_func.send_pkts(up_handle);
+        // printf("sending!");
     }
 
     printf("Throughput: %.3f MBps\n", 1.0 * totalByte / (clock() - clockTime));

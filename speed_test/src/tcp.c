@@ -581,9 +581,9 @@ uint16_t tcp_connect(void* up_handle, void* down_handle, uint16_t port, uint16_t
 }
 
 int main(int argc,char** argv) {
-    dpdk_init("11111", 0);
+    dpdk_init("ffffffffffff", 0);
 
-    cqs_core_affinitize_dpdk(0);
+    cqs_core_affinitize_dpdk(24);
 
     dpdk_module_func.load_module();
     
